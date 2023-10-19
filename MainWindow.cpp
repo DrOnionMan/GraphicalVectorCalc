@@ -15,7 +15,7 @@ Window::MainWindowClass::MainWindowClass() noexcept
 	wc.hCursor = nullptr;
 	wc.hIcon = nullptr;
 	wc.lpszMenuName = nullptr;
-	wc.hbrBackground = nullptr;
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
 	wc.hInstance = GetInstance();
 	wc.lpszClassName = GetName();
 	wc.style = CS_OWNDC;
@@ -71,7 +71,7 @@ void Window::Menus::setMenus(HWND hWnd) const {
 
 Window::Window(int width, int height, const char* name)
 	:
-	width(width), height(height), argand(hWnd, ArgandConfig::ABI)
+	width(width), height(height)
 {
 
 	
@@ -92,10 +92,10 @@ Window::Window(int width, int height, const char* name)
 		MainWindowClass::GetInstance(), this
 		);
 
-	
 	config.fpDefault = &SetConfigDefault;
 	
 	config.fpDefault(&config);
+	
 	
 
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
@@ -108,6 +108,9 @@ Window::~Window() {
 	//DeleteMenu(pmenu);
 	DestroyWindow(hWnd);
 }
+
+
+
 void Window::SetTitle(const std::string& Title) {
 	SetWindowText(hWnd, Title.c_str());
 }
@@ -157,28 +160,50 @@ LRESULT WINAPI Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 		menus.setMenus(hWnd);
 		break;
 	case WM_COMMAND:
-		switch (wParam) {
-		//Argand Diagram Shiz
-		case A_BI:
-			config.ArgandInputType = ArgandConfig::ABI;
-			break;
-		case MODARG:
-			config.ArgandInputType = ArgandConfig::MOD_ARG;
-			break;
-		case EI:
-			config.ArgandInputType = ArgandConfig::REI;
-			break;
-		case DRAW_ARGAND_DIAGRAM:
-			if (argand.m_State.InputType == ArgandConfig::ABI) {
-				MessageBox(nullptr, "swag", "Titties", MB_ICONWARNING);
-			}
-			break;
-		}
-	
+		PollArgandEvents(wParam);
+		break;
 	}
-	argand.SetInputType(config.ArgandInputType);
+	
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
+}
+
+
+
+
+void Window::PollArgandEvents(WPARAM wParam) {
+	/*TODO FREE BUFFER CREATED BY GETSTRINGFROMEDIT FUNCTION*/
+	
+
+	
+	switch (wParam) {
+		//Argand Diagram Shiz
+
+	case DRAW_ARGAND_DIAGRAM:
+		ClearChildWindowBuffer();
+
+		break;
+	case GET_DIFF_FORM_ARGAND:
+		ClearChildWindowBuffer();
+		if (!BufferFull()){ 
+			Argand::SetupConverter(hWnd, &childWindowBuff);
+			
+		}
+		else {
+			WarningBuffOverflow();
+		}
+		break;
+	case CONVERT:
+		if (!BufferFull()) { 
+			//SetTitle(Argand::GetStringFromEdit(GetChild(&childWindowBuff, EDIT)));
+			Argand::Shag(hWnd, &childWindowBuff);
+		}
+		else { 
+			WarningBuffOverflow();
+		}
+		break;
+	}
+	Argand::SwapConfigState(wParam, &config);
 }
 
 std::optional<int> Window::ProcessMessage() {
@@ -196,16 +221,30 @@ std::optional<int> Window::ProcessMessage() {
 }
 
 void Window::ClearChildWindowBuffer() {
-	while (std::size(childWindowBuff) >= 0) {
+	if (childWindowBuff.size() == 0) return;
+	for (int i = childWindowBuff.size(); i > 0; i--) {
+		DestroyWindow(childWindowBuff[i-1].id);
 		childWindowBuff.pop_back();
 	}
 }
+void Window::TrimBuffer() {
+	int i = childWindowBuff.size() - 1;
+	while (childWindowBuff.size() > WindowBufflenMax) {
+		DestroyWindow(childWindowBuff[i].id);
+		childWindowBuff.pop_back();
+		i--;
+	}
+
+}
 
 void Window::WarningBuffOverflow() {
-	if (unsigned int i = std::size(childWindowBuff) > WindowBufflenMax) {
-		while (i >= WindowBufflenMax) {
-			childWindowBuff.pop_back();
-		}
-		MessageBox(nullptr, "Window Buffer Limit Reached\n\nToo Many Inputs Created", "Warning", MB_ICONWARNING);
+	if (BufferFull()) {
+		MessageBox(nullptr, "Window Buffer Limit Reached\n\nToo Many Inputs Created", "WARNING", MB_ICONWARNING);
+		TrimBuffer();
 	}
 }
+
+bool Window::BufferFull() {
+	return childWindowBuff.size() < 10u ? false : true;
+}
+

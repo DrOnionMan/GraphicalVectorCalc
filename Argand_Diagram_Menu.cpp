@@ -1,35 +1,88 @@
 #include"Argand_Diagram_Menu.h"
 
 
-Argand::Argand(HWND ParentWnd, ArgandConfig::UserInputType inputType) noexcept {
-	m_State.InputType = inputType;
-	m_State.ParentWindow = ParentWnd;
 
-}
 
-void Argand::SetUserChoice(int choice) {
-	switch (choice) {
-	case 0x4:
-		m_State.UserChoice = ArgandConfig::ARGAND_CONVERTER;
-		return;
-	case 0x5:
-		m_State.UserChoice = ArgandConfig::ARGAND_DRAWER;
-		return;
-	default:
-		m_State.UserChoice = ArgandConfig::NULLCASE;
-		MessageBox(NULL, "Error in SetUserChoice Function", "CodeErr", MB_ICONWARNING);
+void Argand::SwapConfigState(WPARAM wp, ConfigSetup* config) {
+	switch (wp) {
+	case A_BI:
+		config->ArgandInputType = ArgandConfig::ABI;
+		break;
+	case MODARG:
+		config->ArgandInputType = ArgandConfig::MOD_ARG;
+		break;
+	case EI:
+		config->ArgandInputType = ArgandConfig::REI;
 		break;
 	}
 }
 
-void Argand::SetInputType(ArgandConfig::UserInputType type) {
-	m_State.InputType = type;
+
+
+
+void Argand::SetupConverter(HWND Parent, std::vector<children>* Children) {
+	children temp = { 0 };
+
+	temp.associate = CreateFriend(NULL, NONE);
+
+	temp.id = CreateWindow("Static",
+		"Enter The Complex Number To Be Converted: ",
+		WS_VISIBLE | WS_CHILD | WS_BORDER ,
+		10, 10, 300, 25,
+		Parent, NULL, NULL, NULL
+		);
+	temp.type = STATIC;
+	Children->push_back(temp);
+
+	temp.id = CreateWindow("Edit",
+		"",
+		WS_VISIBLE | WS_CHILD | WS_BORDER,
+		10, 40, 300, 25,
+		Parent, NULL, NULL, NULL
+	);
+	temp.type = EDIT;
+	Children->push_back(temp);
+
+	temp.id = CreateWindow("Button",
+		"Convert",
+		WS_VISIBLE | WS_CHILD | WS_BORDER,
+		100, 100, 75, 30,
+		Parent, (HMENU) CONVERT , NULL, NULL
+	);
+	temp.type = BUTTON;
+
+	Children->push_back(temp);
 }
 
-void Argand::SetTitle(const std::string& Title, HWND hWnd) {
-	SetWindowText(hWnd, Title.c_str());
+char* Argand::GetStringFromEdit(children* Children) {
+	if (Children == nullptr) {
+		return nullptr;
+	}
+	if (Children->type != EDIT) {
+		return nullptr;
+	}
+
+	char* text = (char*)malloc(sizeof(char)*MAX_LEN);
+	if (text) {
+		memset(text, '\0', sizeof(char) * MAX_LEN);
+		GetWindowText(Children->id, text, MAX_LEN);
+
+		return text;
+	}
+
+
+	return nullptr;
 }
 
-Argand::~Argand() {
+void Argand::Shag(HWND Parent, std::vector<children>* Children) {
+	children temp = { 0 };
 
+	temp.id = CreateWindow("Static",
+		"Enter The Complex Number To Be Converted: ",
+		WS_VISIBLE | WS_CHILD | WS_BORDER,
+		10, 10, 300, 25,
+		Parent, NULL, NULL, NULL
+	);
+	temp.type = STATIC;
+	Children->push_back(temp);
 }

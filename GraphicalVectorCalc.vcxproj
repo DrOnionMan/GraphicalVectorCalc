@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Argand_Diagram_Menu.cpp" />
+    <ClCompile Include="children.cpp" />
     <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="WinMain.cpp" />
@@ -152,6 +153,7 @@
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="Argand_Diagram_Menu.h" />
+    <ClInclude Include="children.h" />
     <ClInclude Include="Coniguration.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="MenuMacroDef.h" />
