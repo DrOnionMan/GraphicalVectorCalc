@@ -1,7 +1,7 @@
 #pragma once
 #include<windows.h>
 
-#define TOSTR(x){#x}
+
 
 namespace ArgandConfig {
 	enum UserInput {

@@ -1,6 +1,6 @@
 #pragma once
 #include"Coniguration.h"
-
+#include"Complex.h"
 #include"children.h"
 #include"MenuMacroDef.h"
 #include<string>
@@ -34,7 +34,7 @@ public:
 
 namespace Argand {
 
-	void SetupDraw();
+	void SetupDraw(HWND Parent, std::vector<children>* children);
 
 	char* GetStringFromEdit(children* Children);
 
@@ -42,8 +42,13 @@ namespace Argand {
 
 	void SwapConfigState(WPARAM wp, ConfigSetup* config);
 	
+	void DisplayConverterResult(complex& complex, std::vector<children>* Children, HWND Parent);
+	
+	RECT EmplaceEdit(std::vector<children>* Children);
 
-	void Shag(HWND Parent, std::vector<children>* Children);
+
+	
+	void AddGeometryBox(HWND Parent, std::vector<children>* children);
 	
 }
 

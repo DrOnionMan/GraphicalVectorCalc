@@ -1,29 +1,35 @@
 #pragma once
 #include<windows.h>
 #include"children.h"
+#include"MacroUtils.h"
 #include<vector>
 
 enum childType {
-	STATIC,
+	NONE = -1,
+	STATIC = 1,
 	EDIT,
 	BUTTON,
-	NONE
+	
 };
 
-typedef struct {
-	HWND f_id;
-	childType f_type;
-} Friend;
 
-typedef struct {
+
+struct children{
+
 	HWND id;
 	childType type;
-	Friend associate;
-} children;
+	children* associate;
+};
 
 
-children* GetChild(std::vector<children>* Children, childType Type);
+children* GetChild(children* (*fpOrder)(std::vector<children>* Children, childType Type), std::vector<children>* Children, childType Type);
 
-std::vector<children>* GetAllChildren(std::vector<children>* Children, childType Type);
+std::vector<children> GetAllChildren(std::vector<children>* Children, childType Type);
+int GetChildCount(std::vector<children>* Children, childType Type);
 
-Friend CreateFriend(HWND id, childType type);
+void Killchild(children* child);
+
+children* first(std::vector<children>* Children, childType Type);
+children* last(std::vector<children>* Children, childType Type);
+
+void DeleteEdit(std::vector<children>* Children, int index);

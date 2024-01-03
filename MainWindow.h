@@ -6,7 +6,10 @@
 #include"Coniguration.h"
 #include"Argand_Diagram_Menu.h"
 #include"children.h"
-
+#include"Menu.h"
+#include"Parser.h"
+#include"GfxWindow.h"
+#include"LinkedList.h"
 
 
 
@@ -15,6 +18,7 @@ class Window {
 
 
 private:
+
 	//singleton manages registration & cleanup of window class
 	class MainWindowClass {
 	public:
@@ -30,53 +34,40 @@ private:
 		HINSTANCE hInst;
 	};
 
-	class Menus {
-	public:
-		void setMenus(HWND hWnd)const ;
-		Menus();
-		~Menus();
-	private:
-		void CreateMainMenu();
-		//AS Further
-		void SetMatriciesTopic();
-		void Set3DVectorsTopic();
-		void SetArgandDiagramTopic();
-		//General
-		void HelpMenu();
-
-	public:
-		HMENU Menu;
-	};
 	
 
 public:
 	Window(int width, int height, const char* name);
 	~Window();
-	//Window(const Window&) = delete;
-	//Window& operator=(const Window&) = delete;
+	Window(const Window&) = delete;
+	Window& operator=(const Window&) = delete;
 	void SetTitle(const std::string& Title);
 	static std::optional<int> ProcessMessage();
+	bool DoCreateGraphics();
 	
 	
 private:
 	static LRESULT CALLBACK HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 	static LRESULT CALLBACK InvokeMemberFunc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
+	
 	LRESULT HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
-	void PollArgandEvents(WPARAM wParam);
-	bool BufferFull();
+	void PollArgandEvents(WPARAM wParam, LPARAM lParam);
+	bool BufferFull()const;
 	void ClearChildWindowBuffer();
 	void WarningBuffOverflow();
 	void TrimBuffer();
 
 private:
-	Menus menus;
+	const Menus* pMenus;
 	int width;
 	int height;
-	
-
+	Parser parser;
 public:
+	node* head = NULL;
+	bool GraphicsIsAlive;
+	gfxWindow* gwin;
 	ConfigSetup config;
 	HWND hWnd;
-	static constexpr unsigned int WindowBufflenMax = 10u;
+	static constexpr inline unsigned int BufflenMax = 7u;
 	std::vector<children> childWindowBuff;
 };

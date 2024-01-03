@@ -1,5 +1,9 @@
 #include"MainWindow.h"
 #include"MenuMacroDef.h"
+#include"MacroUtils.h"
+#include"StringUtils.h"
+
+
 Window::MainWindowClass Window::MainWindowClass::wndClass;
 
 
@@ -33,45 +37,16 @@ HINSTANCE Window::MainWindowClass::GetInstance() noexcept {
 	return wndClass.hInst;
 }
 
-void Window::Menus::CreateMainMenu() {
-	SetArgandDiagramTopic();
-}
 
 
-Window::Menus::Menus() : Menu(CreateMenu()) {
-	CreateMainMenu();
-}
-
-Window::Menus::~Menus() {
-	
-}
-
-void Window::Menus::SetArgandDiagramTopic() {
-	HMENU Argand = CreateMenu();
-
-	HMENU InputType = CreateMenu();
-	//Defining The Input Types For the Argand diagrams
-	AppendMenu(InputType, MF_STRING, A_BI, "a + bi");
-	AppendMenu(InputType, MF_STRING, EI, "r*e^i");
-	AppendMenu(InputType, MF_STRING, MODARG, "r(cos(x) + isin(x))");
-
-
-	AppendMenu(Argand, MF_STRING, GET_DIFF_FORM_ARGAND, "Format Converter");
-	AppendMenu(Argand, MF_STRING, DRAW_ARGAND_DIAGRAM, "Argand Diagram Drawer");
-	AppendMenu(Argand, MF_SEPARATOR, NULL, NULL);
-	AppendMenu(Argand, MF_POPUP, (UINT_PTR)InputType, "Input Type");
-
-	
-	AppendMenu(Menu, MF_POPUP, (UINT_PTR) Argand, "Argand Diagrams");
-}
-
-void Window::Menus::setMenus(HWND hWnd) const {
-	SetMenu(hWnd, Menu);
-}
 
 Window::Window(int width, int height, const char* name)
 	:
-	width(width), height(height)
+	width(width), height(height), hWnd(CreateWindow(
+		MainWindowClass::GetName(), name, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
+		CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr,
+		MainWindowClass::GetInstance(), this
+	)), pMenus(nullptr), GraphicsIsAlive(false)
 {
 
 	
@@ -86,26 +61,24 @@ Window::Window(int width, int height, const char* name)
 	//param 8&9 ignore
 	//param 10 instance found from predefined getinstance function in singleton
 	//param 11 pointer to our window instance
-	hWnd = CreateWindow(
-		MainWindowClass::GetName(),name, WS_CAPTION|WS_MINIMIZEBOX|WS_SYSMENU,
-		CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr,
-		MainWindowClass::GetInstance(), this
-		);
-
+	
+	
+	
 	config.fpDefault = &SetConfigDefault;
 	
 	config.fpDefault(&config);
 	
+	parser.setParserConfig(&config);
 	
 
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
 
-	
-
 }
+
 //Pretty self explanitory lmao
 Window::~Window() {
-	//DeleteMenu(pmenu);
+	delete pMenus;
+	
 	DestroyWindow(hWnd);
 }
 
@@ -119,23 +92,24 @@ void Window::SetTitle(const std::string& Title) {
 LRESULT WINAPI Window::HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept {
 
 
-	//wm_nccreatesent before WM_CREATE 
-	//This means that in the lparam there will be a CREATESTRUCT and this will have a member called lpCreateParams
-	//This contains the data of the "this" we put in the original create window function !!!!!!!!
-	//So throught the create struct we get from NCCREATE we can acess the data given by the this
-	//how we connect pointer to our class instance window to the winapi message handling mechanism
+	
 	if (msg == WM_NCCREATE) {
-		//extract window class from creation data
+		
 		const CREATESTRUCTW* const pCreate = reinterpret_cast<CREATESTRUCTW*>(lParam);
-		//doing this static cast as the data in lpCreateparams is a Winddow* in disguise (coz we passed this in)
+		
 		Window* const pWnd = static_cast<Window*>(pCreate->lpCreateParams);
+
+		pWnd->pMenus = new Menus(hWnd);
+
 		//set Winapi managed user data to store ptr to window class
 		//We can set some userdata accociated with a particular window
 		//we want to store a pointer to our window class on the winapi side
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWnd));
+
 		// set messsage proc to normal non setup handler now setup is done
 		//now we have installed ptr j window we want to use a different message proc
-		SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&Window::InvokeMemberFunc));
+
+		SetWindowLongPtr(hWnd, GWLP_WNDPROC , reinterpret_cast<LONG_PTR>(&Window::InvokeMemberFunc));
 
 		return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 	}
@@ -148,21 +122,32 @@ LRESULT WINAPI Window::InvokeMemberFunc(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 	//retreve pointer to window class
 	Window* const pWnd = reinterpret_cast<Window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 	//Forward message to class handler
+	
 	return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 }
 
+
+
 LRESULT WINAPI Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept{
+	
+	
 	switch (msg) {
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		return 0;
 	case WM_CREATE:
-		menus.setMenus(hWnd);
-		break;
-	case WM_COMMAND:
-		PollArgandEvents(wParam);
+	{
+		pMenus->setMenus();
+		
 		break;
 	}
+	case WM_COMMAND:
+		PollArgandEvents(wParam, lParam);
+		break;
+	
+	}
+	
+
 	
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -170,24 +155,35 @@ LRESULT WINAPI Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 
 
-
-void Window::PollArgandEvents(WPARAM wParam) {
-	/*TODO FREE BUFFER CREATED BY GETSTRINGFROMEDIT FUNCTION*/
+typedef uint64_t ui64;
+void Window::PollArgandEvents(WPARAM wParam, LPARAM lParam) {
 	
 
 	
 	switch (wParam) {
 		//Argand Diagram Shiz
-
+	case ADD_COMPLEX_GEOMETRY:
+		if (!BufferFull()) {
+			Argand::AddGeometryBox(hWnd, &childWindowBuff);
+		}
+		else {
+			WarningBuffOverflow();
+		}
+		break;
 	case DRAW_ARGAND_DIAGRAM:
 		ClearChildWindowBuffer();
+		if (!BufferFull()) {
+			Argand::SetupDraw(hWnd, &childWindowBuff);
+		}
+		else {
+			WarningBuffOverflow();
+		}
 
 		break;
 	case GET_DIFF_FORM_ARGAND:
 		ClearChildWindowBuffer();
 		if (!BufferFull()){ 
 			Argand::SetupConverter(hWnd, &childWindowBuff);
-			
 		}
 		else {
 			WarningBuffOverflow();
@@ -195,15 +191,51 @@ void Window::PollArgandEvents(WPARAM wParam) {
 		break;
 	case CONVERT:
 		if (!BufferFull()) { 
-			//SetTitle(Argand::GetStringFromEdit(GetChild(&childWindowBuff, EDIT)));
-			Argand::Shag(hWnd, &childWindowBuff);
+			parser.setParserText(Argand::GetStringFromEdit(GetChild(first, &childWindowBuff, EDIT)), NOPROC);
+			complex c = parser.ParsetoComplex();
+			Argand::DisplayConverterResult(c, &childWindowBuff, hWnd);
+			return;
 		}
 		else { 
 			WarningBuffOverflow();
 		}
 		break;
+	case BN_CLICKED:
+	{
+
+		for (int i = 0; i < BufflenMax; i++) {
+			if (childWindowBuff.at(i).type == EDIT) {
+				if (childWindowBuff.at(i).associate->id == (HWND)lParam) {
+					DeleteEdit(&childWindowBuff, i);
+					//TODO
+					//RearrangeEdits();
+					//Used emplace edits instead @Arg Di menu.cpp
+					return;
+				}
+			}
+		}
+	}break;
+	case DRAW_ARGAND:
+	{
+		GeomData gData = { 0 };
+		//DeleteList(head);
+		for (children c : childWindowBuff) {
+			if (c.type == EDIT) {
+				gData = parser.ProcExprStrToGeom(Argand::GetStringFromEdit(&c));
+				if (!gData) {
+					DeleteList(head);
+					return;
+				}
+				head += gData;
+			}
+		}
+		quick_sort(head, last_node(head));
+		gwin = new gfxWindow(900, 600, "Graphics Window", &GraphicsIsAlive, (void*)head);
+		GraphicsIsAlive = true;
+		
+		
+	}break;
 	}
-	Argand::SwapConfigState(wParam, &config);
 }
 
 std::optional<int> Window::ProcessMessage() {
@@ -223,13 +255,19 @@ std::optional<int> Window::ProcessMessage() {
 void Window::ClearChildWindowBuffer() {
 	if (childWindowBuff.size() == 0) return;
 	for (int i = childWindowBuff.size(); i > 0; i--) {
+		if (childWindowBuff[i-1].associate) {
+			DestroyWindow(childWindowBuff[i-1].associate->id);
+			delete childWindowBuff[i - 1].associate;
+		}
 		DestroyWindow(childWindowBuff[i-1].id);
 		childWindowBuff.pop_back();
 	}
 }
+
 void Window::TrimBuffer() {
 	int i = childWindowBuff.size() - 1;
-	while (childWindowBuff.size() > WindowBufflenMax) {
+	while (childWindowBuff.size() > BufflenMax) {
+		MB("TrimBuffer called");
 		DestroyWindow(childWindowBuff[i].id);
 		childWindowBuff.pop_back();
 		i--;
@@ -244,7 +282,7 @@ void Window::WarningBuffOverflow() {
 	}
 }
 
-bool Window::BufferFull() {
-	return childWindowBuff.size() < 10u ? false : true;
+bool Window::BufferFull() const{
+	return childWindowBuff.size() < BufflenMax ? false : true;
 }
 
