@@ -5,6 +5,7 @@
 #include<vector>
 #include"Coniguration.h"
 #include"Argand_Diagram_Menu.h"
+#include"children.h"
 
 
 
@@ -55,14 +56,17 @@ public:
 	//Window& operator=(const Window&) = delete;
 	void SetTitle(const std::string& Title);
 	static std::optional<int> ProcessMessage();
-	void ClearChildWindowBuffer();
-	void WarningBuffOverflow();
+	
 	
 private:
 	static LRESULT CALLBACK HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 	static LRESULT CALLBACK InvokeMemberFunc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 	LRESULT HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
-	
+	void PollArgandEvents(WPARAM wParam);
+	bool BufferFull();
+	void ClearChildWindowBuffer();
+	void WarningBuffOverflow();
+	void TrimBuffer();
 
 private:
 	Menus menus;
@@ -72,8 +76,7 @@ private:
 
 public:
 	ConfigSetup config;
-	Argand argand;
 	HWND hWnd;
-	static constexpr unsigned int WindowBufflenMax = 10;
-	std::vector<HWND> childWindowBuff;
+	static constexpr unsigned int WindowBufflenMax = 10u;
+	std::vector<children> childWindowBuff;
 };

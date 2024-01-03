@@ -1,6 +1,8 @@
 #pragma once
 #include<windows.h>
 
+#define TOSTR(x){#x}
+
 namespace ArgandConfig {
 	enum UserInput {
 		ARGAND_CONVERTER = 4,
@@ -14,6 +16,7 @@ namespace ArgandConfig {
 		MOD_ARG
 	};
 }
+
 
 struct ConfigSetup {
 	ArgandConfig::UserInputType ArgandInputType;
