@@ -32,7 +32,7 @@ const char* gfxWindow::gfxWindowClass::GetName() noexcept {
 HINSTANCE gfxWindow::gfxWindowClass::GetInstance() noexcept {
 	return wndClass.hInst;
 }
-gfxWindow::gfxWindow(int width, int height, const char* name, bool *isalive, void* list)
+gfxWindow::gfxWindow(int width, int height, const char* name, bool *isalive, node* list)
 	:
 	width(width), height(height), alive(isalive), m_list(list)
 {
@@ -85,6 +85,8 @@ void gfxWindow::AdjustgfxWindowRect(LPARAM lp) {
 gfxWindow::~gfxWindow() {
 	delete pGfx;
 	DestroyWindow(hWnd);
+	DeleteList(m_list);
+	
 }
 
 

@@ -48,5 +48,8 @@ int App::Run() {
 		if (wnd.GraphicsIsAlive) {
 			DoFrame();
 		}
+		if (!wnd.GraphicsIsAlive && wnd.head != NULL) {
+			wnd.head = NULL;
+		}
 	}
 }

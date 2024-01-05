@@ -137,6 +137,9 @@
     <ClInclude Include="LinkedList.h">
       <Filter>Header Files\Utilities/Maths</Filter>
     </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Header Files\Utilities/Maths</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">

@@ -5,7 +5,7 @@
 #include<wrl.h>
 #include"StringUtils.h"
 #include"LinkedList.h"
-
+#include"MKMath.h"
 
 #ifdef NDEBUG
 #undef _DEBUG
@@ -21,10 +21,39 @@
 
 
 
+class Scene2d {
+public:
+	Scene2d(f32 swidth, f32 sheight, node* list);
+	~Scene2d();
+
+
+	std::pair<f32, f32> MaxPoint;
+
+	void GetMeterSize();
+
+	MKMaths::vertex* TriangleBuffer;
+	MKMaths::vertex* LineBuffer;
+	UINT* LineIndexBuffer;
+	UINT* TriangleIndexBuffer;
+private:
+	node* list;
+	UINT cVertexCount;
+	UINT IndexCount;
+	UINT LStartOffset;
+	UINT TStartOffset;
+	struct meter {
+		f32 ar_x;
+		f32 ar_y;
+	};
+	meter meters;
+};
+
+
+
 class Graphics{
 public:
 
-	Graphics(HWND hWnd, float* width, float* height, void* list);
+	Graphics(HWND hWnd, float* width, float* height, node* list);
 	Graphics(const Graphics&) = delete;
 	~Graphics();
 	Graphics& operator=(const Graphics&) = delete;
@@ -45,6 +74,10 @@ private:
 		float *width; float *height; 
 		float getaspectRatio() {
 			return *height / *width;
+		}
+		void MakeNormal() {
+			*width -= 16;
+			*height -= 39;
 		}
 	}vpData;
 	node* glist;

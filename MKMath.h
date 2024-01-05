@@ -15,6 +15,20 @@ namespace MKMaths {
 		f32 a;
 	};
 
+	template<typename T>
+	T Abs(T num) {
+		return num > 0 ? num : (num * -1);
+	}
+
+	struct color {
+		UINT r, g, b;
+	};
+
+	struct vertex {
+		color col;
+		MKMaths::vec4 pos;
+	};
+
 	f32 Dot(vec4& left, vec4& right);
 
 	class Mat4 {

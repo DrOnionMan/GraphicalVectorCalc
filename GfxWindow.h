@@ -26,7 +26,7 @@ private:
 		HINSTANCE hInst;
 	};
 public:
-	gfxWindow(int width, int height, const char* name, bool* isalive, void* list);
+	gfxWindow(int width, int height, const char* name, bool* isalive, node* list);
 	~gfxWindow();
 	gfxWindow(const gfxWindow&) = delete;
 	gfxWindow& operator=(const gfxWindow&) = delete;
@@ -51,7 +51,7 @@ private:
 	}screenData;
 	int width;
 	int height;
-	void* m_list;
+	node* m_list;
 	Graphics* pGfx = nullptr;
 	//std::unique_ptr<Graphics> pGfx;
 };

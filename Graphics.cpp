@@ -8,6 +8,8 @@
 #include"StringUtils.h"
 #include<cmath>
 #include"LinkedList.h"
+
+#include"Logger.h"
 #define M_PI 3.14159265358979323846
 
 #pragma comment(lib,"d3d11.lib")
@@ -17,7 +19,97 @@ typedef unsigned char uchar;
 namespace dx = DirectX;
 namespace wrl = Microsoft::WRL;
 
-Graphics::Graphics(HWND hWnd, float* width, float* height, void* list) :  vpData({ width, height }), glist((node*)list) {
+#define PAIR std::pair<f32, f32>
+
+Scene2d::Scene2d(f32 swidth, f32 sheight, node* list) : list(list) {
+	GetMeterSize();
+
+	Log logger;
+	logger << list;
+	logger << swidth;
+	logger << sheight;
+	logger << MaxPoint.first;
+	logger << MaxPoint.second;
+	!logger;
+}
+
+
+PAIR GetMeterCNum(GeomData& gdata) {
+	f32 mag = gdata.data.comp_num.mag;
+	f32 arg = gdata.data.comp_num.arg;
+
+	f32 max_x = MKMaths::Abs<f32>(mag * cos(arg));
+	f32 max_y = MKMaths::Abs<f32>(mag * sin(arg));
+
+	
+
+	return { max_x, max_y };
+}
+
+PAIR GetMeterCircle(GeomData& gdata) {
+	using namespace MKMaths;
+	PAIR Center = { gdata.data.circle.center_x , gdata.data.circle.center_y };
+	f32 radius = gdata.data.circle.radius;
+
+	f32 max_x = 0.0f;
+	Abs<f32>(Center.first - radius) > Abs<f32>(Center.first + radius) ? max_x = Abs<f32>(Center.first - radius) : max_x = Abs<f32>(Center.first + radius);
+	f32 max_y = 0.0f;
+	Abs<f32>(Center.second - radius) > Abs<f32>(Center.second + radius) ? max_y = Abs<f32>(Center.second - radius) : max_y = Abs<f32>(Center.second + radius);
+
+
+	return { max_x, max_y };
+}
+
+PAIR GetMeterHLine(GeomData& gdata) {
+	using namespace MKMaths;
+
+	PAIR start = { Abs<f32>(gdata.data.hline.xspos) + 10.0f, Abs<f32>(gdata.data.hline.yspos) + 10.0f };
+	/*
+	f32 arg = gdata.data.hline.arg;
+
+	f32 mag = 10.0f;
+
+	f32 max_x = MKMaths::Abs<f32>(mag * cos(arg));
+	f32 max_y = MKMaths::Abs<f32>(mag * sin(arg));
+	*/
+	return start;
+}
+
+Scene2d::~Scene2d() {
+
+}
+
+void Scene2d::GetMeterSize() {
+	MaxPoint = { 0,0 };
+	
+	for (node* p = list; p != NULL; p = p->next) {
+		PAIR m = { 0,0 };
+		switch (p->data.gType) {
+		case CIRCLE: {
+			m = GetMeterCircle(p->data);
+		}break;
+		case HLINE: {
+			m = GetMeterHLine(p->data);
+		}break;
+		case CNUM: {
+			m = GetMeterCNum(p->data);
+		} break;
+		default: {
+			ERR("List err", "List item not found");
+		}break;
+		}
+		if (MaxPoint.first < m.first) {
+			MaxPoint.first = m.first;
+		}
+		if (MaxPoint.second < m.second) {
+			MaxPoint.second = m.second;
+		}
+	}
+}
+
+
+
+Graphics::Graphics(HWND hWnd, float* width, float* height, node* list) :  vpData({ width, height }), glist(list) {
 	DXGI_SWAP_CHAIN_DESC sd = {};
 	sd.BufferDesc.Width = 0;
 	sd.BufferDesc.Height = 0;
@@ -90,6 +182,12 @@ Graphics::Graphics(HWND hWnd, float* width, float* height, void* list) :  vpData
 
 	FUNC_ASSERT(pDevice->CreateDepthStencilView(pDepthStencil.Get(), &dsvd, &pDSV));
 
+	
+	Scene2d swag(*vpData.width, *vpData.height, glist);
+	
+
+	
+	
 	pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), pDSV.Get());
 }
 
@@ -97,7 +195,7 @@ Graphics::Graphics(HWND hWnd, float* width, float* height, void* list) :  vpData
 
 Graphics::~Graphics() {
 	MBD("Distructor called");
-	DeleteList(glist);
+	
 }
 
 
@@ -107,6 +205,27 @@ void Graphics::EndFrame() {
 
 
 void Graphics::DrawAxis2D(void) {
+
+	wrl::ComPtr<ID3DBlob> pBlob;
+
+
+	wrl::ComPtr<ID3D11PixelShader> pPixelShader;
+	D3DReadFileToBlob(L"PixelShader.cso", &pBlob);
+	pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader);
+	pContext->PSSetShader(pPixelShader.Get(), nullptr, 0u);
+
+
+
+
+
+	wrl::ComPtr<ID3D11VertexShader> pVertexShader;
+
+	D3DReadFileToBlob(L"VertexShader.cso", &pBlob);
+	pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader);
+	pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
+
+
+
 	struct vert {
 		float x;
 		float y;
@@ -133,6 +252,7 @@ void Graphics::DrawAxis2D(void) {
 		0,1,
 		2,3
 	};
+
 	wrl::ComPtr<ID3D11Buffer> pIndexBuffer;
 
 	D3D11_BUFFER_DESC ibd = {};
@@ -160,26 +280,7 @@ void Graphics::DrawAxis2D(void) {
 	const UINT offset = 0u;
 	pContext->IASetVertexBuffers(0u, 1u, pVertexBuffer.GetAddressOf(), &stride, &offset);
 
-	wrl::ComPtr<ID3DBlob> pBlob;
-
-
-	wrl::ComPtr<ID3D11PixelShader> pPixelShader;
-	D3DReadFileToBlob(L"PixelShader.cso", &pBlob);
-	pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader);
-	pContext->PSSetShader(pPixelShader.Get(), nullptr, 0u);
-
-
-
-
-
-	wrl::ComPtr<ID3D11VertexShader> pVertexShader;
-
-	D3DReadFileToBlob(L"VertexShader.cso", &pBlob);
-	pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader);
-	pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
-
-
-
+	
 
 
 	wrl::ComPtr<ID3D11InputLayout> pInLay;
@@ -198,6 +299,8 @@ void Graphics::DrawAxis2D(void) {
 
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
+
+	
 
 	
 
@@ -300,7 +403,7 @@ void Graphics::DrawTriangle(float angle, float x, float z, const wchar_t* pixels
 				dx::XMMatrixRotationZ(angle) *
 				dx::XMMatrixTranslation(x, 0.0f, z + 4.0f) *
 				dx::XMMatrixPerspectiveLH(1.0f, vpData.getaspectRatio() ,0.5f, 10.0f)
-			)
+			)  
 		}
 	};
 

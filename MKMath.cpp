@@ -137,7 +137,7 @@ namespace MKMaths {
 	}
 
 	f32 Dot(vec4& left, vec4& right) {
-		return (left.x * right.x) + (left.y * right.y) + (left.z * right.z);
+		return (left.x * right.x) + (left.y * right.y) + (left.z * right.z) + (left.a * right.a);
 	}
 
 	// j = row of left matrix
@@ -182,7 +182,7 @@ namespace MKMaths {
 	}
 
 	void Mat4::MultArr(Mat4& left, void** info) {
-		vec4* VertexBuffer = (vec4*)info[0];
+		vertex* VertexBuffer = (vertex*)info[0];
 		UINT* start_offset = (UINT*)info[1];
 		UINT* VertBuffSize = (UINT*)info[2];
 
@@ -196,7 +196,7 @@ namespace MKMaths {
 		//std::cout << "\n\n";
 
 		for (int i = 0; i < (*VertBuffSize - *start_offset); i++) {
-			vec4* currentColumn = &VertexBuffer[i];
+			vec4* currentColumn = &VertexBuffer[i].pos;
 			vec4 Column = *currentColumn;
 			//std::cout << "Current Column -> " << Column << std::endl;
 

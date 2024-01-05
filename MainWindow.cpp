@@ -2,7 +2,7 @@
 #include"MenuMacroDef.h"
 #include"MacroUtils.h"
 #include"StringUtils.h"
-
+#include"Logger.h"
 
 Window::MainWindowClass Window::MainWindowClass::wndClass;
 
@@ -38,7 +38,7 @@ HINSTANCE Window::MainWindowClass::GetInstance() noexcept {
 }
 
 
-
+#include"Logger.h"
 
 Window::Window(int width, int height, const char* name)
 	:
@@ -48,7 +48,6 @@ Window::Window(int width, int height, const char* name)
 		MainWindowClass::GetInstance(), this
 	)), pMenus(nullptr), GraphicsIsAlive(false)
 {
-
 	
 		
 
@@ -227,10 +226,14 @@ void Window::PollArgandEvents(WPARAM wParam, LPARAM lParam) {
 					return;
 				}
 				head += gData;
+				
+				
 			}
 		}
+
 		quick_sort(head, last_node(head));
-		gwin = new gfxWindow(900, 600, "Graphics Window", &GraphicsIsAlive, (void*)head);
+		
+		gwin = new gfxWindow(900, 600, "Graphics Window", &GraphicsIsAlive, head);
 		GraphicsIsAlive = true;
 		
 		

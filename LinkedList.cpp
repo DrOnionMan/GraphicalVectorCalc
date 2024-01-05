@@ -1,21 +1,16 @@
 #include"LinkedList.h"
 #include<stdlib.h>
+#include"MacroUtils.h"
 #include<assert.h>
 #include<fstream>
 
 void LogList(node* list) {
-	std::ofstream myFile;
-	
-	myFile.open("C:/A level Computing/GraphicalVectorCalc/Log.txt");
-	
-	for (node* p = list; p != NULL; p = p->next) {
-		myFile << p->data.name;
-		if (p->next != NULL) {
-			myFile << " , ";
-		}
+	for (node* l = list; l != NULL; l = l->next) {
+		char c[2] = { l->data.name, '\0'};
+
+		MB(c);
+
 	}
-	myFile << std::endl;
-	myFile.close();
 }
 
 void operator+=(node*& nodey, GeomData& data) {
@@ -29,7 +24,7 @@ void operator+=(node*& nodey, GeomData& data) {
 	nodey = new_node;
 }
 
-bool operator<(GeomData g1, GeomData g2) {
+bool operator<(GeomData& g1, GeomData& g2) {
 	return g1.name < g2.name ? true : false;
 }
 
