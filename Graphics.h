@@ -36,14 +36,18 @@ public:
 	UINT* LineIndexBuffer;
 	UINT* TriangleIndexBuffer;
 private:
+	void DefineTheMeter(f32 sw, f32 sh);
+	
 	node* list;
 	UINT cVertexCount;
 	UINT IndexCount;
 	UINT LStartOffset;
 	UINT TStartOffset;
 	struct meter {
-		f32 ar_x;
-		f32 ar_y;
+		f32 x;
+		f32 y;
+
+		f32 axiswidth;
 	};
 	meter meters;
 };
@@ -69,6 +73,8 @@ public:
 	}
 	void DrawAxis2D(void);
 
+	void SetShaders(const wchar_t* VertexShaderPath, const wchar_t* PixelShaderPath);
+
 private:
 	struct {
 		float *width; float *height; 
@@ -81,6 +87,7 @@ private:
 		}
 	}vpData;
 	node* glist;
+	Microsoft::WRL::ComPtr<ID3DBlob> pBlob;
 	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwap;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;

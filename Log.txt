@@ -1,1 +1,13 @@
 
+Meter values: 
+0.0333333
+0.05
+screen measurements: 
+900
+600
+Should not be 0:
+20
+Should be 1:
+1
+Should be 2/3
+0.666667

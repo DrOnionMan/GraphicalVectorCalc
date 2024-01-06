@@ -23,14 +23,8 @@ namespace wrl = Microsoft::WRL;
 
 Scene2d::Scene2d(f32 swidth, f32 sheight, node* list) : list(list) {
 	GetMeterSize();
-
-	Log logger;
-	logger << list;
-	logger << swidth;
-	logger << sheight;
-	logger << MaxPoint.first;
-	logger << MaxPoint.second;
-	!logger;
+	DefineTheMeter(swidth, sheight);
+	
 }
 
 
@@ -76,6 +70,51 @@ PAIR GetMeterHLine(GeomData& gdata) {
 }
 
 Scene2d::~Scene2d() {
+
+}
+
+void Scene2d::DefineTheMeter(f32 sw, f32 sh) {
+	f32 ar_x = 1.0f, ar_y = 1.0f;
+
+	sw > sh ? ar_x = sh / sw : ar_y = sw / sh;
+
+	f32 segment_width = 0.0f;
+
+	MaxPoint.first > MaxPoint.second ?
+		segment_width = 1 / (2 * MaxPoint.first)
+		: 
+		segment_width = 1 / (2 * MaxPoint.second);
+
+	MaxPoint.first > MaxPoint.second ?
+		meters.axiswidth = (2 * MaxPoint.first)
+		:
+		meters.axiswidth = (2 * MaxPoint.second);
+
+
+	meters.x = segment_width * ar_x;
+
+	meters.y = segment_width * ar_y;
+
+#ifndef NDEBUG
+	Log l;
+
+	l << "Meter values: \n";
+	l << meters.x;
+	l << meters.y;
+	l << "screen measurements: \n";
+	l << sw;
+	l << sh;
+
+	l << "Should not be 0:\n";
+	l << meters.axiswidth;
+
+	l << "Should be 1:\n";
+	l << meters.y * meters.axiswidth;
+	l << "Should be 2/3\n";
+	l << meters.x * meters.axiswidth;
+	
+	!l;
+#endif
 
 }
 
@@ -182,7 +221,8 @@ Graphics::Graphics(HWND hWnd, float* width, float* height, node* list) :  vpData
 
 	FUNC_ASSERT(pDevice->CreateDepthStencilView(pDepthStencil.Get(), &dsvd, &pDSV));
 
-	
+	vpData.MakeNormal();
+
 	Scene2d swag(*vpData.width, *vpData.height, glist);
 	
 
@@ -195,7 +235,6 @@ Graphics::Graphics(HWND hWnd, float* width, float* height, node* list) :  vpData
 
 Graphics::~Graphics() {
 	MBD("Distructor called");
-	
 }
 
 
@@ -203,14 +242,12 @@ void Graphics::EndFrame() {
 	pSwap->Present(1u, 0u);
 }
 
-
-void Graphics::DrawAxis2D(void) {
-
-	wrl::ComPtr<ID3DBlob> pBlob;
+void Graphics::SetShaders(const wchar_t* VertexShaderPath, const wchar_t* PixelShaderPath) {
+	
 
 
 	wrl::ComPtr<ID3D11PixelShader> pPixelShader;
-	D3DReadFileToBlob(L"PixelShader.cso", &pBlob);
+	D3DReadFileToBlob(PixelShaderPath, &pBlob);
 	pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader);
 	pContext->PSSetShader(pPixelShader.Get(), nullptr, 0u);
 
@@ -220,11 +257,16 @@ void Graphics::DrawAxis2D(void) {
 
 	wrl::ComPtr<ID3D11VertexShader> pVertexShader;
 
-	D3DReadFileToBlob(L"VertexShader.cso", &pBlob);
+	D3DReadFileToBlob(VertexShaderPath, &pBlob);
 	pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader);
 	pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
 
+}
 
+
+void Graphics::DrawAxis2D(void) {
+
+	SetShaders(L"VertexShader.cso", L"PixelShader.cso");
 
 	struct vert {
 		float x;
@@ -281,7 +323,7 @@ void Graphics::DrawAxis2D(void) {
 	pContext->IASetVertexBuffers(0u, 1u, pVertexBuffer.GetAddressOf(), &stride, &offset);
 
 	
-
+	
 
 	wrl::ComPtr<ID3D11InputLayout> pInLay;
 	const D3D11_INPUT_ELEMENT_DESC ied[] = {

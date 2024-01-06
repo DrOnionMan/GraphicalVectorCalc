@@ -4,10 +4,12 @@
 
 
 int CALLBACK WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow) {
+	
+#ifndef NDEBUG
 	Log* l = new Log;
 	l->WipeFile();
 	delete l;
-
+#endif
 	
 	App myApp;
 
