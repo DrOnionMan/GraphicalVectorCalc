@@ -5,6 +5,7 @@
 #include<windows.h>
 
 typedef float f32;
+typedef uint8_t ui8;
 namespace MKMaths {
 	
 
@@ -21,12 +22,12 @@ namespace MKMaths {
 	}
 
 	struct color {
-		UINT r, g, b;
+		ui8 r, g, b, a;
 	};
 
 	struct vertex {
-		color col;
 		MKMaths::vec4 pos;
+		color col;
 	};
 
 	f32 Dot(vec4& left, vec4& right);

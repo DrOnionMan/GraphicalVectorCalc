@@ -75,6 +75,16 @@ public:
 		string << x << std::endl;
 	}
 
+	void operator<<(UINT x) {
+		string << x << std::endl;
+	}
+
+	void operator<<(MKMaths::vertex x) {
+		string << "position :\n"
+			<< x.pos.x << " , " << x.pos.y << " , " << x.pos.z << " , " << x.pos.a << "\n"
+			<< "Colour:\n" << " , " << (UINT)x.col.r << " , " << (UINT)x.col.g << " , " << (UINT)x.col.b << " , " << (UINT)x.col.a << std::endl;
+	}
+
 	void operator<<(node* list) {
 		for (node* p = list; p != NULL; p = p->next) {
 			switch (p->data.gType) {

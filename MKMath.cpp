@@ -195,7 +195,7 @@ namespace MKMaths {
 		//std::cout << "Sawg" << std::endl;
 		//std::cout << "\n\n";
 
-		for (int i = 0; i < (*VertBuffSize - *start_offset); i++) {
+		for (int i = 0; i < *VertBuffSize - *start_offset; i++) {
 			vec4* currentColumn = &VertexBuffer[i].pos;
 			vec4 Column = *currentColumn;
 			//std::cout << "Current Column -> " << Column << std::endl;

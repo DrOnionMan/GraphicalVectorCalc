@@ -21,36 +21,6 @@
 
 
 
-class Scene2d {
-public:
-	Scene2d(f32 swidth, f32 sheight, node* list);
-	~Scene2d();
-
-
-	std::pair<f32, f32> MaxPoint;
-
-	void GetMeterSize();
-
-	MKMaths::vertex* TriangleBuffer;
-	MKMaths::vertex* LineBuffer;
-	UINT* LineIndexBuffer;
-	UINT* TriangleIndexBuffer;
-private:
-	void DefineTheMeter(f32 sw, f32 sh);
-	
-	node* list;
-	UINT cVertexCount;
-	UINT IndexCount;
-	UINT LStartOffset;
-	UINT TStartOffset;
-	struct meter {
-		f32 x;
-		f32 y;
-
-		f32 axiswidth;
-	};
-	meter meters;
-};
 
 
 
@@ -71,20 +41,25 @@ public:
 	void PrintVp(void) {
 		PrintNums<double>(2, *vpData.height, *vpData.width);
 	}
-	void DrawAxis2D(void);
+	void Draw(UINT VertexCount, D3D11_PRIMITIVE_TOPOLOGY topology);
 
+
+	void Drawtest(void);
 	void SetShaders(const wchar_t* VertexShaderPath, const wchar_t* PixelShaderPath);
+	void BindVertexBuffer(MKMaths::vertex* verts, UINT array_size);
+	void BindIndexBuffer(UINT* indicies, UINT array_size);
 
+	
+
+
+	void Render();
 private:
 	struct {
 		float *width; float *height; 
 		float getaspectRatio() {
 			return *height / *width;
 		}
-		void MakeNormal() {
-			*width -= 16;
-			*height -= 39;
-		}
+		
 	}vpData;
 	node* glist;
 	Microsoft::WRL::ComPtr<ID3DBlob> pBlob;
@@ -93,4 +68,43 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pTarget;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDSV;
+};
+
+
+class Scene2d {
+public:
+	Scene2d(f32 swidth, f32 sheight, node* list, Graphics* gfx);
+	~Scene2d();
+
+
+	std::pair<f32, f32> MaxPoint;
+
+	void GetMeterSize();
+
+	MKMaths::vertex* TriangleBuffer;
+	MKMaths::vertex* LineBuffer;
+	UINT* LineIndexBuffer;
+	UINT* TriangleIndexBuffer;
+private:
+	void DefineTheMeter(f32 sw, f32 sh);
+	void DrawAxis();
+	void DrawCircle(GeomData& g, MKMaths::color& c);
+	void genVertexBufferCircle(MKMaths::vertex* buffer, MKMaths::color& col, f32 radius, int steps);
+	void DrawHline(GeomData& g, MKMaths::color& c);
+	void DrawCNum(GeomData& g, MKMaths::color& c);
+
+
+	Graphics* gfx;
+	node* list;
+	UINT cVertexCount;
+	UINT IndexCount;
+	UINT LStartOffset;
+	UINT TStartOffset;
+	struct meter {
+		f32 x;
+		f32 y;
+
+		f32 axiswidth;
+	};
+	meter meters;
 };

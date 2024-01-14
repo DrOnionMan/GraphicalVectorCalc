@@ -35,7 +35,7 @@ void App::DoFrame() {
 	}
 
 	//wnd.gwin->GFX().DrawTriangle(Clock.Peek(),wnd.gwin->mouse.GetPosX() / 450.0f - 1.0f, -wnd.gwin->mouse.GetPosY() / 300.0f + 1.0f, L"PixelShader.cso");
-	wnd.gwin->GFX().DrawAxis2D();
+	wnd.gwin->GFX().Render();
 	wnd.gwin->GFX().EndFrame();
 }
 

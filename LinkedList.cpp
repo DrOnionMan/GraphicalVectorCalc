@@ -29,8 +29,7 @@ bool operator<(GeomData& g1, GeomData& g2) {
 }
 
 
-node* partition(node* first, node* last)
-{
+node* partition(node* first, node* last){
 	// Get first node of given linked list 
 	node* pivot = first;
 	node* front = first;
@@ -58,20 +57,67 @@ node* partition(node* first, node* last)
 	last->data = temp;
 	return pivot;
 }
-node* last_node(node* head)
-{
+node* last_node(node* head){
 	node* temp = head;
 	while (temp != NULL && temp->next != NULL) {
 		temp = temp->next;
 	}
 	return temp;
 }
-void quick_sort(node* first, node* last)
-{
+void quick_sort(node* first, node* last){
 	if (first == last) {
 		return;
 	}
 	node* pivot = partition(first, last);
+
+	if (pivot != NULL && pivot->next != NULL) {
+		quick_sort(pivot->next, last);
+	}
+
+	if (pivot != NULL && first != pivot) {
+		quick_sort(first, pivot);
+	}
+}
+
+
+
+
+node* partition(node* first, node* last, bool fn(node* left, node* right)){
+	// Get first node of given linked list 
+	node* pivot = first;
+	node* front = first;
+	GeomData temp = {};
+	while (front != NULL && front != last) {
+		if (fn(front, last)) {
+			pivot = first;
+
+			// Swapping  node values 
+			temp = first->data;
+			first->data = front->data;
+			front->data = temp;
+
+			// Visiting the next node 
+			first = first->next;
+		}
+
+		// Visiting the next node 
+		front = front->next;
+	}
+	assert(first != NULL);
+	// Change last node value to current node 
+	temp = first->data;
+	first->data = last->data;
+	last->data = temp;
+	return pivot;
+}
+
+
+
+void quicksort_c(node* first, node* last, bool fn(node* right, node* left)) {
+	if (first == last) {
+		return;
+	}
+	node* pivot = partition(first, last, fn);
 
 	if (pivot != NULL && pivot->next != NULL) {
 		quick_sort(pivot->next, last);

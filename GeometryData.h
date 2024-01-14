@@ -4,7 +4,7 @@ typedef int i32;
 
 
 enum GeomType {
-	NULLTYPE = -1, CIRCLE = 1, HLINE, CNUM
+	NULLTYPE = -1, CIRCLE = 1,CNUM,  HLINE
 };
 
 class GeomData {
