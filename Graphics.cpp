@@ -94,7 +94,7 @@ void Scene2d::genVertexBufferCircle( MKMaths::vertex* buffer, MKMaths::color& co
 		
 		buffer[j] = { (meters.x * radius * cos(RAD(i.x))) ,   (meters.y * radius * sin(RAD(i.x))) , 0.0f, 1.0f, col};
 	}
-	
+#ifndef NDEBUG 
 	static bool w = false;
 	if (w == false) {
 		Log l;
@@ -105,7 +105,7 @@ void Scene2d::genVertexBufferCircle( MKMaths::vertex* buffer, MKMaths::color& co
 		}
 		w = true;
 	}
-	
+#endif
 	
 }
 
@@ -535,13 +535,13 @@ Graphics::Graphics(HWND hWnd, float* width, float* height, node* list) :  vpData
 	
 
 	quicksort_c(glist, last_node(glist), lessthan);
-	
+#ifndef NDEBUG
 	Log l;
 
 	l << glist;
 	!l;
 
-
+#endif
 	pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), pDSV.Get());
 }
 
