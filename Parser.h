@@ -19,6 +19,8 @@ private:
 
 public:
 	Parser();
+	Parser(const Parser&) = delete;
+	Parser& operator=(const Parser&) = delete;
 	void setParserConfig(ConfigSetup* config);
 	void setParserText(char* text, unsigned int flag);
 	~Parser();

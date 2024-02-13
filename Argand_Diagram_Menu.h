@@ -34,21 +34,21 @@ public:
 
 namespace Argand {
 
-	void SetupDraw(HWND Parent, std::vector<children>* children);
+	void SetupDraw(HWND Parent, std::vector<children>*__restrict children);
 
 	char* GetStringFromEdit(children* Children);
 
-	void SetupConverter(HWND Parent,std::vector<children>* children);
+	void SetupConverter(HWND Parent,std::vector<children>* __restrict children);
 
 	void SwapConfigState(WPARAM wp, ConfigSetup* config);
 	
-	void DisplayConverterResult(complex& complex, std::vector<children>* Children, HWND Parent);
+	void DisplayConverterResult(complex& complex, std::vector<children>* __restrict Children, HWND Parent);
 	
-	RECT EmplaceEdit(std::vector<children>* Children);
+	RECT EmplaceEdit(std::vector<children>* __restrict Children);
 
 
 	
-	void AddGeometryBox(HWND Parent, std::vector<children>* children);
+	void AddGeometryBox(HWND Parent, std::vector<children>* __restrict children);
 	
 }
 

@@ -2,141 +2,107 @@
 #include<math.h>
 #include<iostream>
 #include<windows.h>
+#include<omp.h>
 
 namespace MKMaths {
-	Mat4::Mat4() {
-
-	}
+	
 
 	Mat4 Mat4::Rotate3D_z(f32 theta) {
-		Mat4 Rot(
-			{ cos(theta), -sin(theta), 0.0f, 0.0f },
-			{ sin(theta),  cos(theta), 0.0f, 0.0f },
-			{ 0.0f,     0.0f,       1.0f, 0.0f },
-			{ 0.0f,     0.0f,       0.0f, 1.0f },
-			false);
-		return Rot;
+		f32 Rot[16] = {
+			 cos(theta), -sin(theta), 0.0f, 0.0f ,
+			 sin(theta),  cos(theta), 0.0f, 0.0f ,
+			 0.0f,     0.0f,       1.0f, 0.0f ,
+			 0.0f,     0.0f,       0.0f, 1.0f ,
+		};
+		Mat4 ret(Rot);
+		return ret;
 	}
 
 
 
 	Mat4 Mat4::Rotate3D_x(f32 theta) {
-		Mat4 Rot(
-			{ 1.0f,     0.0f,       0.0f,           0.0f },
-			{ 0.0f,     1.0f,       0.0f,           0.0f },
-			{ 0.0f,     0.0f,       cos(theta),  -sin(theta), },
-			{ 0.0f,     0.0f,       sin(theta),   cos(theta), },
-			false);
-		return Rot;
+		f32 Rot[16] = {
+			 1.0f,     0.0f,       0.0f,           0.0f ,
+			 0.0f,     1.0f,       0.0f,           0.0f ,
+			 0.0f,     0.0f,       cos(theta),  -sin(theta),
+			 0.0f,     0.0f,       sin(theta),   cos(theta),
+		};
+
+		Mat4 ret(Rot);
+			
+		return ret;
 	}
 
 
 
 	Mat4 Mat4::Rotate3D_y(f32 theta) {
-		Mat4 Rot(
-			{ cos(theta),     0.0f,       sin(theta),   0.0f },
-			{ 0.0f      ,     1.0f,       0.0f,         0.0f },
-			{ -sin(theta),     0.0f,       cos(theta),   0.0f },
-			{ 0.0f       ,     0.0f,       0.0f,         1.0f },
-			false);
-		return Rot;
+		f32 Rot[16] = {
+			cos(theta), 0.0f, sin(theta), 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			-sin(theta), 0.0f, cos(theta), 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f,
+		};
+		Mat4 ret(Rot);
+		return ret;
 	}
 
 	Mat4 Mat4::Identity() {
-		Mat4 Rot(
-			{ 1.0f,     0.0f,       0.0f,   0.0f },
-			{ 0.0f,     1.0f,       0.0f,   0.0f },
-			{ 0.0f,     0.0f,       1.0f,   0.0f },
-			{ 0.0f,     0.0f,       0.0f,   1.0f },
-			false);
-		return Rot;
+		f32 Id[16] = {
+			1.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f,
+		};
+		Mat4 ret(Id);
+		return ret;
 	}
 
 
 
 	Mat4 Mat4::strech(f32 sf_x, f32 sf_y, f32 sf_z) {
-		Mat4 Rot(
-			{ sf_x       ,     0.0f       ,       0.0f       ,   0.0f },
-			{ 0.0f       ,     sf_y       ,       0.0f       ,   0.0f },
-			{ 0.0f       ,     0.0f       ,       sf_z       ,   0.0f },
-			{ 0.0f       ,     0.0f       ,       0.0f       ,   1.0f },
-			false);
-		return Rot;
+		f32 strech[16] = {
+			sf_x, 0.0f, 0.0f, 0.0f,
+			0.0f, sf_y, 0.0f, 0.0f,
+			0.0f, 0.0f, sf_z, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f,
+		};
+		Mat4 ret(strech);
+		return ret;
 	}
 
 	Mat4 Mat4::Translate(f32 x, f32 y, f32 z) {
-		Mat4 Rot(
-			{ 1.0f,     0.0f,       0.0f,   x },
-			{ 0.0f,     1.0f,       0.0f,   y },
-			{ 0.0f,     0.0f,       1.0f,   z },
-			{ 0.0f,     0.0f,       0.0f,   1.0f },
-			false);
-		return Rot;
+		f32 Rot[16] = {
+			1.0f,     0.0f,       0.0f,   x ,
+			0.0f,     1.0f,       0.0f,   y ,
+			0.0f,     0.0f,       1.0f,   z ,
+			0.0f,     0.0f,       0.0f,   1.0f ,
+		};
+		Mat4 ret(Rot);
+
+		return ret;
 	}
 
 	//Angle is the argument from i
 	Mat4 Mat4::Rotate2D(f32 theta) {
-		Mat4 Rot(
-			{ cos(theta)  ,   -sin(theta),  0.0f,  0.0f },
-			{ sin(theta)  ,   cos(theta),  0.0f,  0.0f },
-			{ 0.0f      ,     0.0f    ,  1.0f,  0.0f },
-			{ 0.0f      ,     0.0f    ,  0.0f,  1.0f },
-			false);
+		f32 arr[16] = {
+			cos(theta)  ,   -sin(theta),  0.0f,  0.0f ,
+			sin(theta)  ,   cos(theta),  0.0f,  0.0f ,
+			0.0f      ,     0.0f    ,  1.0f,  0.0f ,
+			0.0f      ,     0.0f    ,  0.0f,  1.0f ,
+		};
 
-		return Rot;
+		Mat4 ret(arr);
+
+		return ret;
 	}
 
 
 
 
 
-	Mat4::Mat4(vec4 v1, vec4 v2, vec4 v3, vec4 v4, bool columnwise) {
+	
 
-		if (columnwise) {
-			mat[0][0] = v1.x;
-			mat[1][0] = v1.y;
-			mat[2][0] = v1.z;
-			mat[3][0] = v1.a;
-
-			mat[0][1] = v2.x;
-			mat[1][1] = v2.y;
-			mat[2][1] = v2.z;
-			mat[3][1] = v2.a;
-
-			mat[0][2] = v3.x;
-			mat[1][2] = v3.y;
-			mat[2][2] = v3.z;
-			mat[3][2] = v3.a;
-
-			mat[0][3] = v4.x;
-			mat[1][3] = v4.y;
-			mat[2][3] = v4.z;
-			mat[3][3] = v4.a;
-		}
-		else {
-			mat[0][0] = v1.x;
-			mat[0][1] = v1.y;
-			mat[0][2] = v1.z;
-			mat[0][3] = v1.a;
-
-			mat[1][0] = v2.x;
-			mat[1][1] = v2.y;
-			mat[1][2] = v2.z;
-			mat[1][3] = v2.a;
-
-			mat[2][0] = v3.x;
-			mat[2][1] = v3.y;
-			mat[2][2] = v3.z;
-			mat[2][3] = v3.a;
-
-			mat[3][0] = v4.x;
-			mat[3][1] = v4.y;
-			mat[3][2] = v4.z;
-			mat[3][3] = v4.a;
-		}
-	}
-
-	f32 Dot(vec4& left, vec4& right) {
+	f32 Dot_4D(const vec4& left,const vec4& right) {
 		return (left.x * right.x) + (left.y * right.y) + (left.z * right.z) + (left.a * right.a);
 	}
 
@@ -144,88 +110,142 @@ namespace MKMaths {
 	// k = index of column in right matrix
 	// i = column of right matrix being multiplied
 
-	Mat4 Mat4::Multiply(Mat4& left, Mat4& right) {
 
-		vec4 matrix[4] = { 0 };
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 4; j++) {
-				f32 sum = 0;
-				for (int k = 0; k < 4; k++) {
-					sum += left.mat[i][k] * right.mat[k][j];
-				}
-				switch (j) {
-				case 0:matrix[i].x = sum; break;
-				case 1:matrix[i].y = sum; break;
-				case 2:matrix[i].z = sum; break;
-				case 3:matrix[i].a = sum; break;
-				default:
-					break;
+
+#define Pragma_OMP _Pragma("\"omp parallel for\"")
+	
+
+
+	//transopses 4x4 matricies
+	void Mat4::transpose() const {
+
+		f32 arr[16] = { 0 };
+		for (int n = 0; n < 16; n++) {
+			int i = n / 4;
+			int j = n % 4;
+			arr[n] = this->mat[4 * j + i];
+		}
+
+		//Super sketchy cast
+		memcpy(const_cast<f32*>(this->mat), arr, 16 * sizeof(float));
+	}
+
+
+
+	Pragma_OMP
+	Mat4 Mat4::Mul(const Mat4& left, const Mat4& right, const size_t matSize) {
+		Mat4 ret;
+
+		alignas(64) float f[16] = { 0 };
+
+		
+			for (int i = 0; i < matSize; i++) {
+				for (int j = 0; j < matSize; j++) {
+					int cIndex = i * matSize + j;
+					for (int k = 0; k < matSize; k++) {
+						int aIndex = i * matSize + k;
+						int bIndex = k * matSize + j;
+						f[cIndex] += left.mat[aIndex] * right.mat[bIndex];
+					}
 				}
 			}
-		}
-
-		Mat4 retmat(matrix[0], matrix[1], matrix[2], matrix[3], false);
-		return retmat;
+		return ret(f);
 	}
 
-	std::ostream& operator<<(std::ostream& stream, vec4& vec) {
-		stream << vec.x << " , " << vec.y << " , " << vec.z << " , " << vec.a;
-		return stream;
-	}
+	
+	Mat4 Mat4::__transpose(Mat4 m) {
+		f32 arr[16] = { 0 };
 
-	void Mat4::getVecArrRowWise(vec4* vecs) {
-
-		for (int i = 0; i < 4; i++) {
-			vecs[i] = { this->mat[i][0],this->mat[i][1],this->mat[i][2],this->mat[i][3] };
-		}
-		return;
-	}
-
-	void Mat4::MultArr(Mat4& left, void** info) {
-		vertex* VertexBuffer = (vertex*)info[0];
-		UINT* start_offset = (UINT*)info[1];
-		UINT* VertBuffSize = (UINT*)info[2];
-
-		vec4 rows[4] = { 0 };
-		left.getVecArrRowWise(rows);
-		//for (int i = 0; i < 4; i++) {
-		//	std::cout << rows[i] << std::endl;
-		//}
-
-		//std::cout << "Sawg" << std::endl;
-		//std::cout << "\n\n";
-
-		for (int i = 0; i < *VertBuffSize - *start_offset; i++) {
-			vec4* currentColumn = &VertexBuffer[i].pos;
-			vec4 Column = *currentColumn;
-			//std::cout << "Current Column -> " << Column << std::endl;
-
-			currentColumn->x = Dot(rows[0], Column);
-			//std::cout << "Result of first dot -> " << currentColumn->x << std::endl;
-			//std::cout << "Expected result -> " << cos(0.78) * Column.x + -sin(0.78) * Column.y << std::endl;
-			currentColumn->y = Dot(rows[1], Column);
-			currentColumn->z = Dot(rows[2], Column);
-			currentColumn->a = Dot(rows[3], Column);
-
-
-		}
-
-		return;
-	}
-
-
-
-	void Mat4::transpose() {
-		Mat4 matrix = *this;
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 4; j++) {
-				mat[i][j] = matrix.mat[j][i];
+		Pragma_OMP
+			for (int n = 0; n < 16; n++) {
+				int i = n / 4;
+				int j = n % 4;
+				arr[n] = m.mat[4 * j + i];
 			}
-		}
+
+		memcpy(m.mat, arr, 16* sizeof(f32));
+
+		return m;
+	}
+
+	Mat4 Mat4::Rotate3D_z_t(f32 theta) {
+		f32 Rot[16] = {
+			 cos(theta), sin(theta), 0.0f, 0.0f ,
+			 -sin(theta),  cos(theta), 0.0f, 0.0f ,
+			 0.0f,     0.0f,       1.0f, 0.0f ,
+			 0.0f,     0.0f,       0.0f, 1.0f ,
+		};
+		Mat4 ret(Rot);
+		return ret;
+	}
+
+	Mat4 Mat4::Rotate3D_x_t(f32 theta) {
+		f32 Rot[16] = {
+			1,          0,           0, 0,
+		0, cos(theta), -sin(theta), 0,
+		0, sin(theta),  cos(theta), 0,
+		0,          0,           0, 1
+		};
+
+		Mat4 ret(Rot);
+
+		return ret;
+	}
+	Mat4 Mat4::Rotate3D_y_t(f32 theta) {
+		f32 Rot[16] = {
+		cos(theta), 0, sin(theta), 0,
+		0, 1, 0, 0,
+		-sin(theta), 0, cos(theta), 0,
+		0, 0, 0, 1
+		};
+		Mat4 ret(Rot);
+		return ret;
+	}
+
+	Mat4 Mat4::Rotate2D_t(f32 theta) {
+		f32 arr[16] = {
+			cos(theta)  ,   sin(theta),  0.0f,  0.0f ,
+			-sin(theta)  ,   cos(theta),  0.0f,  0.0f ,
+			0.0f      ,     0.0f    ,  1.0f,  0.0f ,
+			0.0f      ,     0.0f    ,  0.0f,  1.0f ,
+		};
+
+		Mat4 ret(arr);
+
+		return ret;
+	}
+	
+	Mat4 Mat4::Translate_t(f32 x, f32 y, f32 z) {
+		f32 Rot[16] = {
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		x, y, z, 1
+		};
+		Mat4 ret(Rot);
+
+		return ret;
+	}
+
+	//Love the Formatting
+	Mat4 Mat4::PerspectiveRH(f32 VW, f32 VH, f32 n, f32 f) {
+		f32 r[16] = {
+		(2 * n) / VW,    0,            0,                       0,
+		0    ,          (2 * n) / VH,     0,                       0,
+		0 ,                   0,      f / (n - f),              -1,
+		0  ,                  0, f * n / (n - f), 0
+		};
+		Mat4 ret(r);
+
+		return ret;
 	}
 
 
-	Mat4 operator*(Mat4 right, Mat4 left) {
-		return Mat4::Multiply(right, left);
-	}
 }
+
+
+MKMaths::Mat4 operator*(MKMaths::Mat4 left, MKMaths::Mat4 right) {
+	return MKMaths::Mat4::Mul(left, right, 4);
+}
+
+#undef Pragma_OMP

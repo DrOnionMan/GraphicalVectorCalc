@@ -53,7 +53,7 @@ private:
 	int height;
 	node* m_list;
 	Graphics* pGfx = nullptr;
-	//std::unique_ptr<Graphics> pGfx;
+	
 };
 
 

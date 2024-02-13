@@ -24,7 +24,7 @@ void Argand::SwapConfigState(WPARAM wp, ConfigSetup* config) {
 
 
 
-void Argand::SetupConverter(HWND Parent, std::vector<children>* Children) {
+void Argand::SetupConverter(HWND Parent, std::vector<children>*__restrict Children) {
 	children temp = { 0 };
 
 	temp.associate = nullptr;
@@ -79,7 +79,7 @@ char* Argand::GetStringFromEdit(children* Children) {
 	return nullptr;
 }
 
-void Argand::SetupDraw(HWND Parent, std::vector<children>* Children) {
+void Argand::SetupDraw(HWND Parent, std::vector<children>*__restrict Children) {
 	children draw_btn = { NULL };
 	draw_btn.type = BUTTON;
 	draw_btn.id = CreateWindow("Button",
@@ -104,7 +104,7 @@ void Argand::SetupDraw(HWND Parent, std::vector<children>* Children) {
 }
 
 typedef uint64_t ui64;
-void Argand::DisplayConverterResult(complex& complex, std::vector<children>* Children, HWND Parent) {
+void Argand::DisplayConverterResult(complex& complex, std::vector<children>*__restrict Children, HWND Parent) {
 	children MOD = { NULL };
 	MOD.associate = nullptr;
 
@@ -137,7 +137,7 @@ void Argand::DisplayConverterResult(complex& complex, std::vector<children>* Chi
 	Children->push_back(ABI);
 }
 
-children* CreateDeleteButton(HWND Parent,HWND associate, std::vector<children>* Children, int index, RECT* rect) {
+children* CreateDeleteButton(HWND Parent,HWND associate, std::vector<children>*__restrict Children, int index, RECT* rect) {
 	/*TODO FIGURE OUT HOW TO DO THIS SHIT */
 	children* DeleteButton = new children;
 	if (rect == nullptr) {
@@ -173,33 +173,18 @@ children* CreateDeleteButton(HWND Parent,HWND associate, std::vector<children>* 
 
 
 
-void GetChildRect(RECT* rect, HWND& hWnd) {
+static void GetChildRect(RECT* rect, HWND& hWnd) {
 	GetWindowRect(hWnd, rect);
 	MapWindowPoints(HWND_DESKTOP, GetParent(hWnd), (LPPOINT)rect, 2);
 }
 
 
-//Overloading operator to neaten up the sort
-bool operator>(const RECT& r1, const RECT& r2) {
-	return r1.bottom > r2.bottom ? true : false;
-}
 
-void sort(std::vector<RECT>* v) {
-	if (v->size() == 0 || v->size() == 1) {
-		return;
-	}
-	for (int i = 0; i < v->size(); i++) {
-		for (int j = 0; j < v->size() - i - 1; j++) {
-			if (v->at(j) > v->at(j + 1)) {
-				RECT temp = v->at(j + 1);
-				v->at(j + 1) = v->at(j);
-				v->at(j) = temp;
-			}
-		}
-	}
-}
 
-RECT Argand::EmplaceEdit(std::vector<children>* Children) {
+
+
+
+RECT Argand::EmplaceEdit(std::vector<children> * __restrict Children) {
 	std::vector<children> Edits = GetAllChildren(Children, EDIT);
 	if (Edits.size() == 0) {
 
@@ -217,8 +202,11 @@ RECT Argand::EmplaceEdit(std::vector<children>* Children) {
 		rects.push_back(rect);
 	}
 	
-	sort(&rects);
 	
+	const auto LT = [](const RECT& a, const RECT& b) {
+		return a.bottom < b.bottom ? true : false;
+	};
+	std::sort(rects.begin(), rects.end(), LT);
 
 	
 	
@@ -254,7 +242,7 @@ RECT Argand::EmplaceEdit(std::vector<children>* Children) {
 	
 }
 
-void Argand::AddGeometryBox(HWND Parent, std::vector<children>* Children) {
+void Argand::AddGeometryBox(HWND Parent, std::vector<children>* __restrict Children) {
 	int i = Children->size();
 	
 	RECT rect = EmplaceEdit(Children);

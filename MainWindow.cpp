@@ -3,6 +3,7 @@
 #include"MacroUtils.h"
 #include"StringUtils.h"
 #include"Logger.h"
+#include<ranges>
 
 Window::MainWindowClass Window::MainWindowClass::wndClass;
 
@@ -46,7 +47,7 @@ Window::Window(int width, int height, const char* name)
 		MainWindowClass::GetName(), name, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
 		CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr,
 		MainWindowClass::GetInstance(), this
-	)), pMenus(nullptr), GraphicsIsAlive(false)
+	)), pMenus(nullptr), GraphicsIsAlive(false), gwin(nullptr)
 {
 	
 		
@@ -82,7 +83,7 @@ Window::~Window() {
 }
 
 
-
+//Legacy function not usegul anymore
 void Window::SetTitle(const std::string& Title) {
 	SetWindowText(hWnd, Title.c_str());
 }
@@ -241,9 +242,9 @@ void Window::PollArgandEvents(WPARAM wParam, LPARAM lParam) {
 	}
 }
 
-std::optional<int> Window::ProcessMessage() {
+std::optional<int> Window::ProcessMessage(){
 	MSG msg;
-
+	//peek so render loop not interrupted, not useful on this window but its not a detriment either.
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
 		if (msg.message == WM_QUIT) {
 			return msg.wParam;
@@ -257,20 +258,21 @@ std::optional<int> Window::ProcessMessage() {
 
 void Window::ClearChildWindowBuffer() {
 	if (childWindowBuff.size() == 0) return;
-	for (int i = childWindowBuff.size(); i > 0; i--) {
-		if (childWindowBuff[i-1].associate) {
-			DestroyWindow(childWindowBuff[i-1].associate->id);
-			delete childWindowBuff[i - 1].associate;
+	//love a little bit of the C++ STL
+	for (children& child : childWindowBuff | std::ranges::views::reverse) {
+		if (child.associate != nullptr) {
+			DestroyWindow(child.associate->id);
+			delete child.associate;
 		}
-		DestroyWindow(childWindowBuff[i-1].id);
-		childWindowBuff.pop_back();
+		DestroyWindow(child.id);
 	}
+	childWindowBuff = {};
 }
 
 void Window::TrimBuffer() {
 	int i = childWindowBuff.size() - 1;
 	while (childWindowBuff.size() > BufflenMax) {
-		MB("TrimBuffer called");
+		//MB("TrimBuffer called");
 		DestroyWindow(childWindowBuff[i].id);
 		childWindowBuff.pop_back();
 		i--;

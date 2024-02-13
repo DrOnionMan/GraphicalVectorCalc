@@ -81,6 +81,9 @@
     <ClCompile Include="MKMath.cpp">
       <Filter>Source Files\Utilities/Maths</Filter>
     </ClCompile>
+    <ClCompile Include="Scene2d.cpp">
+      <Filter>Source Files\GraphicsWindow</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h">
@@ -140,18 +143,24 @@
     <ClInclude Include="Logger.h">
       <Filter>Header Files\Utilities/Maths</Filter>
     </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Header Files\GraphicsWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene2d.h">
+      <Filter>Header Files\GraphicsWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene3d.h">
+      <Filter>Header Files\GraphicsWindow</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PixelShader.hlsl">
+    <FxCompile Include="VS_WTrans.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="VertexShader.hlsl">
+    <FxCompile Include="GeneralPS.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="VertShader_2d.hlsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PixShader_2d.hlsl">
+    <FxCompile Include="VS_NOTRANS.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

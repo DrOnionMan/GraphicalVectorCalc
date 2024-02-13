@@ -10,7 +10,7 @@ enum GeomType {
 class GeomData {
 public:
 	bool operator!() {
-		return this->gType == NULLTYPE ? true : false;
+		return this->gType == NULLTYPE;
 	}
 	union {
 		struct {

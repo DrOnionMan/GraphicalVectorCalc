@@ -5,6 +5,8 @@
 #include"LinkedList.h"
 #include"MKMath.h"
 #include<filesystem>
+
+//not included in release build
 #ifndef NDEBUG
 class Log {
 public:
@@ -39,21 +41,19 @@ public:
 
 	void operator<<(MKMaths::Mat4& matrix) {
 		string << "Matrix: \n";
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 4; j++) {
-				string << matrix.mat[i][j];
-				if (j == 3) {
-					string << "\n";
-				}
-				else {
-					string << " , ";
-				}
-			}
+		for (int i = 0; i <= 12; i += 4) {
+			string << matrix.mat[i] << " , " << matrix.mat[i + 1] << " , " << matrix.mat[i + 2] << " , " << matrix.mat[i + 3] << "\n";
 		}
+
+		string << "\n\n";
 	}
 
 	void WipeFile() {
+		
 		fopen_s(&file, f.c_str(), "w");
+		//love me an assert
+		//make sure file is not NULL
+		assert(file != NULL);
 		fprintf_s(file, "\n");
 		fclose(file);
 	}

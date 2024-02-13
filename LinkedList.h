@@ -1,6 +1,11 @@
 #pragma once
 #include<stdio.h>
 #include"GeometryData.h"
+
+
+
+//non generic one use LL struct
+//glad i dont have to do the usual scuffed macros
 struct node {
 	GeomData data;
 	node* next;
@@ -10,7 +15,7 @@ void LogList(node* list);
 
 
 
-
+//sketchy overload with the ptr by ref 
 void operator+=(node*& nodey, GeomData& data);
 
 node* partition(node* first, node* last);

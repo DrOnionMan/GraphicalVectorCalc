@@ -37,22 +37,24 @@ public:
 		pContext->ClearRenderTargetView(pTarget.Get(), color);
 		pContext->ClearDepthStencilView(pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 	}
+	//Legacy remove
 	void DrawTriangle(float angle, float x, float z, const wchar_t* pixelshader);
+	//legacy remove
 	void PrintVp(void) {
 		PrintNums<double>(2, *vpData.height, *vpData.width);
 	}
-	void Draw(UINT VertexCount, D3D11_PRIMITIVE_TOPOLOGY topology);
 
-
+	void Draw(UINT VertexCount, D3D11_PRIMITIVE_TOPOLOGY topology,
+		std::pair<const wchar_t*, const wchar_t*> shaders);
 	void Drawtest(void);
 	void SetShaders(const wchar_t* VertexShaderPath, const wchar_t* PixelShaderPath);
 	void BindVertexBuffer(MKMaths::vertex* verts, UINT array_size);
 	void BindIndexBuffer(UINT* indicies, UINT array_size);
-
+	void BindConstantBuffer_Matrix(const MKMaths::Mat4& matrix);
 	
 
 
-	void Render();
+	void Render(void);
 private:
 	struct {
 		float *width; float *height; 
@@ -71,40 +73,3 @@ private:
 };
 
 
-class Scene2d {
-public:
-	Scene2d(f32 swidth, f32 sheight, node* list, Graphics* gfx);
-	~Scene2d();
-
-
-	std::pair<f32, f32> MaxPoint;
-
-	void GetMeterSize();
-
-	MKMaths::vertex* TriangleBuffer;
-	MKMaths::vertex* LineBuffer;
-	UINT* LineIndexBuffer;
-	UINT* TriangleIndexBuffer;
-private:
-	void DefineTheMeter(f32 sw, f32 sh);
-	void DrawAxis();
-	void DrawCircle(GeomData& g, MKMaths::color& c);
-	void genVertexBufferCircle(MKMaths::vertex* buffer, MKMaths::color& col, f32 radius, int steps);
-	void DrawHline(GeomData& g, MKMaths::color& c);
-	void DrawCNum(GeomData& g, MKMaths::color& c);
-
-
-	Graphics* gfx;
-	node* list;
-	UINT cVertexCount;
-	UINT IndexCount;
-	UINT LStartOffset;
-	UINT TStartOffset;
-	struct meter {
-		f32 x;
-		f32 y;
-
-		f32 axiswidth;
-	};
-	meter meters;
-};
