@@ -13,3 +13,7 @@
 #define DRAW_ARGAND 0x7
 #define ADD_COMPLEX_GEOMETRY 0x8
 #define DELETE_EDIT 0b1 << 24
+
+
+#define DRAW_MATRICIES_SETUP 0x9
+#define M_TRANSMIT 0x11

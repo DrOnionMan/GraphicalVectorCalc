@@ -110,6 +110,11 @@ public:
 		}
 	}
 
+	void operator<<(MKMaths::plane p) {
+		string << "Plane equasion : \n" << p.a << "x + " << p.b << "y + " << p.c << "z = " << p.d;
+		string << "\n";
+	}
+
 	
 
 	void Commit() {

@@ -1,6 +1,5 @@
 #pragma once
 #include<string>
-#include"Coniguration.h"
 #include"MKMath.h"
 #include"GeometryData.h"
 
@@ -21,7 +20,6 @@ public:
 	Parser();
 	Parser(const Parser&) = delete;
 	Parser& operator=(const Parser&) = delete;
-	void setParserConfig(ConfigSetup* config);
 	void setParserText(char* text, unsigned int flag);
 	~Parser();
 	complex ParsetoComplex();
@@ -42,7 +40,7 @@ private:
 
 	float ExtractDecimal(char* buffer);
 private:
-	ConfigSetup m_config;
+	
 	char* currentString;
 	int cursor;
 	int backbone;

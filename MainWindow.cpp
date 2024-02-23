@@ -64,11 +64,7 @@ Window::Window(int width, int height, const char* name)
 	
 	
 	
-	config.fpDefault = &SetConfigDefault;
 	
-	config.fpDefault(&config);
-	
-	parser.setParserConfig(&config);
 	
 
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
@@ -142,7 +138,7 @@ LRESULT WINAPI Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 		break;
 	}
 	case WM_COMMAND:
-		PollArgandEvents(wParam, lParam);
+		PollMyEvents(wParam, lParam);
 		break;
 	
 	}
@@ -156,7 +152,7 @@ LRESULT WINAPI Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 
 typedef uint64_t ui64;
-void Window::PollArgandEvents(WPARAM wParam, LPARAM lParam) {
+void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 	
 
 	
@@ -234,7 +230,37 @@ void Window::PollArgandEvents(WPARAM wParam, LPARAM lParam) {
 
 		quick_sort(head, last_node(head));
 		
-		gwin = new gfxWindow(900, 600, "Graphics Window", &GraphicsIsAlive, head);
+		gwin = new gfxWindow(900, 600, "Graphics Window", { &GraphicsIsAlive, false }, head);
+		GraphicsIsAlive = true;
+		
+		
+	}break;
+	case DRAW_MATRICIES_SETUP: {
+		ClearChildWindowBuffer();
+		if(!BufferFull()) {
+			Mats::SetupMats(hWnd, &childWindowBuff);
+		}
+		else {
+			WarningBuffOverflow();
+		}
+	}break;
+	case M_TRANSMIT: {
+		GeomData gData = { 0 };
+		//DeleteList(head);
+		
+		for (children c : childWindowBuff) {
+			if (c.type == EDIT) {
+				gData = parser.ProcExprStrToGeom(Argand::GetStringFromEdit(&c));
+				if (!gData) {
+					DeleteList(head);
+					return;
+				}
+				head += gData;
+			}
+		}
+		
+
+		gwin = new gfxWindow(900, 600, "Graphics Window", { &GraphicsIsAlive, true }, head);
 		GraphicsIsAlive = true;
 		
 		
@@ -259,6 +285,7 @@ std::optional<int> Window::ProcessMessage(){
 void Window::ClearChildWindowBuffer() {
 	if (childWindowBuff.size() == 0) return;
 	//love a little bit of the C++ STL
+	//trivial find and delete pretty self explanitory
 	for (children& child : childWindowBuff | std::ranges::views::reverse) {
 		if (child.associate != nullptr) {
 			DestroyWindow(child.associate->id);

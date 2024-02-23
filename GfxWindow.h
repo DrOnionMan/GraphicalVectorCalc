@@ -26,7 +26,7 @@ private:
 		HINSTANCE hInst;
 	};
 public:
-	gfxWindow(int width, int height, const char* name, bool* isalive, node* list);
+	gfxWindow(int width, int height, const char* name, std::pair<bool*, bool> gfxDim, node* list);
 	~gfxWindow();
 	gfxWindow(const gfxWindow&) = delete;
 	gfxWindow& operator=(const gfxWindow&) = delete;
@@ -44,6 +44,7 @@ public:
 	Mouse mouse;
 	HWND hWnd;
 	bool* alive;
+	bool Dim3D;
 private:
 	struct {
 		float width;

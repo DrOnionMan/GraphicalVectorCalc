@@ -29,8 +29,9 @@ static void genIndexBufferTriangle(UINT* ind, UINT vertexCount, UINT& indexCount
 
 
 	const UINT first = indexCount;
-
+#ifndef NDEBUG
 	assert(ind != NULL);
+#endif
 	ind[indexCount] = first;
 	ind[++indexCount] = first + 2;
 	ind[++indexCount] = first + 1;
@@ -109,18 +110,21 @@ static bool lessthan(node* left, node* right) {
 //z=1.414*e^1.45i
 //|c-(1+2i)|=5
 //Arg(c-(1+5i))=1.45
-Scene2d::Scene2d(f32* swidth, f32* sheight, node* list, Graphics* __restrict gfx) : list(list), gfx(gfx), sh(sheight), sw(swidth) {
+Scene2d::Scene2d(f32* swidth, f32* sheight, node* list, Graphics* __restrict gfx) : list(list), gfx(gfx), sh(sheight), sw(swidth), Dim(gfx->_Dim), 
+	meters({}) {
 	quicksort_c(this->list, last_node(this->list), lessthan);
-	GetMeterSize();
-	DefineTheMeter();
-
+	if (!gfx->_Dim) {
+		GetMeterSize();
+		DefineTheMeter();
+	}
+	//DrawAxis();
 }
 
 void Scene2d::Render() noexcept {
 	GetMeterSize();
 	DefineTheMeter();
-	std::vector<MKMaths::color> colours = { {238, 87, 131, 0},{255, 255, 51, 0}, {0, 255, 255, 0}, {255, 153, 51}, {185, 37, 14, 0} };
 	DrawAxis();
+
 	int i = 4;
 	for (node* currentnode = list; currentnode != NULL; currentnode = currentnode->next) {
 		if (currentnode->data.gType == CIRCLE) {
@@ -374,6 +378,14 @@ void Scene2d::GetMeterSize() {
 
 
 void Scene2d::DrawAxis() {
+
+
+
+
+
+	//z=1*e^1i
+
+
 	using namespace MKMaths;
 	typedef D3D11_PRIMITIVE_TOPOLOGY dpt;
 	//DrawPrincipal axis
@@ -384,15 +396,24 @@ void Scene2d::DrawAxis() {
 		{0.0f, axw * meters.y, 0.0f, 1.0f, 0, 255, 0, 0},
 		{0.0f, -axw * meters.y, 0.0f, 1.0f, 0, 255, 0, 0},
 	};
-	gfx->BindVertexBuffer(PrincipalAxis, 4);
-	UINT Indicies[] = {
-		0,1,
-		2,3
+	vertex pa[]{
+		{1.0f, 0.0f, 0.0f, 1.0f, 0, 255, 0, 0},
+		{-1.0f, 0.0f, 0.0f, 1.0f, 0, 255, 0, 0},
 	};
-	gfx->BindIndexBuffer(Indicies, 4);
-	gfx->Draw(4, dpt::D3D11_PRIMITIVE_TOPOLOGY_LINELIST, {L"VS_NOTRANS.cso", L"GeneralPS.cso"});
+	
 
+	
 
+	gfx->BindVertexBuffer(PrincipalAxis, std::size(PrincipalAxis));
+	UINT Indicies[] = {
+		0, 1,
+		2, 3
+	};
+
+	gfx->BindIndexBuffer(Indicies, std::size(Indicies));
+	gfx->Draw(std::size(Indicies), dpt::D3D11_PRIMITIVE_TOPOLOGY_LINELIST, {L"VS_NOTRANS.cso", L"GeneralPS.cso"});
+
+	
 
 	//draw generated axis
 #ifndef NDEBUG
@@ -406,8 +427,18 @@ void Scene2d::DrawAxis() {
 		l << "Think they should be the same:";
 		l << (f32)round((axw / meters.y));
 		!l;
+		for (int i = 0; i < 4; i++) {
+			Log l;
+			l << "Vertex at index ";
+			l << i;
+			l << "\n";
+			l << PrincipalAxis[i];
+			l << "\n";
+			!l;
+		}
 		written = true;
 	}
+	
 #endif
 
 
@@ -431,7 +462,6 @@ void Scene2d::DrawAxis() {
 	}
 
 	for (int i = 1, index = 0; i <= axw; index += 4, i++) {
-
 		whiteaxis_x[index] = { axw * meters.x, axw * (i / axw) * meters.y, 0.0f, 1.0f, 255, 255, 255, 0 };
 		whiteaxis_x[index + 1] = { -axw * meters.x, axw * (i / axw) * meters.y, 0.0f, 1.0f, 255, 255, 255, 0 };
 		whiteaxis_x[index + 2] = { axw * meters.x, -axw * (i / axw) * meters.y, 0.0f, 1.0f, 255, 255, 255, 0 };
@@ -455,4 +485,167 @@ void Scene2d::DrawAxis() {
 	delete[] whiteaxis_x;
 
 }
+
+//////////////
+//3d Stuff below here
+
+void Scene2d::DrawAxis3D() noexcept {
+	const auto CAx = colours.at(4);
+	colours.pop_back();
+	const auto CAy = colours.at(3);
+	colours.pop_back();
+	const auto CAz = colours.at(2);
+	colours.pop_back();
+	
+	MKMaths::color white = { 255, 255, 255 , 0};
+
+	MKMaths::vertex AxisVerts[6] = {
+		//X-Axis
+		1.0f, 0.0f, 0.0f, 1.0f, CAx,
+		-1.0f, 0.0f, 0.0f, 1.0f, white,
+		//Y-Axis
+		0.0f, 1.0f, 0.0f, 1.0f, CAy,
+		0.0f, -1.0f, 0.0f, 1.0f, white,
+		//Z-Axis
+		0.0f, 0.0f, 1.0f, 1.0f, CAz,
+		0.0f, 0.0f, -1.0f, 1.0f, white
+	};
+
+	UINT indBuff[] = {
+		// X-Axis
+		0, 1,
+		// Y-Axis
+		2, 3,
+		// Z-Axis
+		4, 5
+	};
+
+
+
+
+	gfx->BindVertexBuffer(AxisVerts, static_cast<UINT>(std::size(AxisVerts)));
+	gfx->BindIndexBuffer(indBuff, std::size(indBuff));
+
+	
+	gfx->Draw_3D(6, dpt::D3D11_PRIMITIVE_TOPOLOGY_LINELIST, {L"VertexShader.cso", L"GeneralPS.cso"}, meters.aRx, meters.aRy);
+	
+}
+
+//remove both
+#define blue 0, 0, 255 , 0
+/*
+1x+1y+1z=69
+*/
+
+
+static MKMaths::Mat4 GetPlnTransform(MKMaths::plane& pln) {
+	using namespace MKMaths;
+	polar p = toPolar(pln);
+
+	struct vec3 {
+		f32 x, y, z;
+	};
+
+	
+
+	const f32 lambda = (pln.d / ((pln.a * pln.a) + (pln.b * pln.b) + (pln.c * pln.c))) * (1.0f / 1000.0f);
+	//multiplied by scale factor to ensure translaton is within bounds 1.0f -> -1.0f
+	
+	const vec3 cP = { lambda * pln.a , lambda * pln.b, lambda * pln.c };
+
+
+
+	Mat4 ret =  Mat4::Rotate3D_y_t(p.phi) * Mat4::Rotate3D_z_t(p.theta);
+
+	ret = ret * Mat4::Translate_t(cP.x, cP.y, cP.z);
+
+	
+	return ret;
+}
+
+
+void Scene2d::DrawPlane(MKMaths::plane pln) noexcept {
+	using namespace MKMaths;
+	vertex plnVerts[] = {
+		{0.0f, -1.0f, -1.0f, 1.0f, blue},
+		{0.0f, -1.0f, 1.0f, 1.0f, blue},
+		{0.0f, 1.0f, -1.0f, 1.0f, blue},
+		{0.0f, 1.0f, 1.0f, 1.0f, blue}
+	};
+
+
+	UINT indBuff[] = {
+		0, 1, 2, 
+		2, 1, 3
+	};
+
+
+	Mat4 t = GetPlnTransform(pln);
+#ifndef NDEBUG
+	static int i = 0;
+	if (i < 3) {
+		Log l;
+		l << "Transform: \n\n";
+		l << t;
+		!l;
+	}
+	i++;
+#endif
+	//t = Mat4::Identity();
+	gfx->BindConstantBuffer_Matrix(t, 1u);
+
+	gfx->BindVertexBuffer(plnVerts, static_cast<UINT>(std::size(plnVerts)));
+
+	gfx->BindIndexBuffer(indBuff, std::size(indBuff));
+
+	gfx->Draw_3D(6, dpt::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, {L"Plane_Shader.cso", L"GeneralPS.cso"}, meters.aRx, meters.aRy);
+	
+}
+
+
+void Scene2d::RenderMatSystem() noexcept {
+	
+	for (node* p = list; p != NULL; p = p->next) {
+		if (p->data.gType == MAT) {
+			MKMaths::plane pln = {
+				p->data.data.mat.a,
+				p->data.data.mat.b,
+				p->data.data.mat.c,
+				p->data.data.mat.d,
+			};
+			DrawPlane(pln);
+		}
+	}
+
+	
+	
+}
+
+
+
+void Scene2d::RefreshMeters() noexcept {
+	GetMeterSize();
+	DefineTheMeter();
+}
+
+
+void Scene2d::GetAR() noexcept {
+	if (*sw > *sh) {
+		meters.aRx = 1.0f;
+		meters.aRy = *sh / *sw;
+	}
+	else {
+		meters.aRy = 1.0f;
+		meters.aRx = *sw / *sh;
+	}
+}
+
+
+void Scene2d::Render3D() noexcept {
+	//RefreshMeters();
+	GetAR();
+	DrawAxis3D();
+	RenderMatSystem();
+}
+
 

@@ -32,9 +32,9 @@ const char* gfxWindow::gfxWindowClass::GetName() noexcept {
 HINSTANCE gfxWindow::gfxWindowClass::GetInstance() noexcept {
 	return wndClass.hInst;
 }
-gfxWindow::gfxWindow(int width, int height, const char* name, bool *isalive, node* list)
+gfxWindow::gfxWindow(int width, int height, const char* name, std::pair<bool*, bool> gfxDim, node* list)
 	:
-	width(width), height(height), alive(isalive), m_list(list)
+	width(width), height(height), alive(gfxDim.first), m_list(list), Dim3D(gfxDim.second)
 {
 
 	//Gets rid of title bar 
@@ -63,11 +63,13 @@ gfxWindow::gfxWindow(int width, int height, const char* name, bool *isalive, nod
 
 
 	//pGfx = std::make_unique<Graphics>(hWnd, &screenData.width, &screenData.height, m_list);
-	pGfx = new Graphics(hWnd, &screenData.width, &screenData.height, m_list);
+	pGfx = new Graphics(hWnd, &screenData.width, &screenData.height, m_list, Dim3D);
+
+
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
 }
 
-
+#include"Logger.h"
 
 void gfxWindow::AdjustgfxWindowRect(LPARAM lp) {
 	RECT wr = { 0 };
@@ -76,9 +78,18 @@ void gfxWindow::AdjustgfxWindowRect(LPARAM lp) {
 	wr.top = 100;
 	wr.bottom = height + wr.top;
 	AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_MAXIMIZEBOX | WS_SIZEBOX, FALSE);
+
+	GetWindowRect(hWnd, &wr);
 	screenData.width = (float)(wr.right - wr.left);
 	screenData.height = (float)(wr.bottom - wr.top);
-	
+#ifndef NDEBUG
+	Log l;
+	l << "-------------------\nSW -> ";
+	l << screenData.width;
+	l << "\n-------------------\nSH -> ";
+	l << screenData.height;
+	!l;
+#endif
 }
 
 //Pretty self explanitory lmao
@@ -93,6 +104,8 @@ gfxWindow::~gfxWindow() {
 void gfxWindow::SetTitle(const std::string& Title) {
 	SetWindowText(hWnd, Title.c_str());	
 }
+
+
 LRESULT WINAPI gfxWindow::HandleMsgSetup_gfx(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept {
 
 
@@ -219,6 +232,9 @@ LRESULT gfxWindow::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) 
 		break;
 	case WM_SIZE:
 		AdjustgfxWindowRect(lParam);
+		if (pGfx) {
+			pGfx->AdjustSwapChainBufferSizes();
+		}
 		break;
 	}
 

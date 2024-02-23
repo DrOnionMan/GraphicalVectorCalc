@@ -241,6 +241,45 @@ namespace MKMaths {
 	}
 
 
+
+	template<class U, class T>
+	static constexpr U pun_cast(const T& val) {
+		return std::bit_cast<U>(val);
+	}
+
+	inline f32 Mag(const plane p) {
+		f32 magsqurd = (p.a * p.a) + (p.b * p.b) + (p.c * p.c);
+
+		int32_t temp;
+		float num;
+
+		num = magsqurd;
+
+
+		temp = *pun_cast<uint32_t*>(&num);
+		temp = 0x1fbc7fcb + (temp >> 1);
+
+		num = *pun_cast<f32*>(&temp);
+
+		num = 0.5f * (num + magsqurd / num);
+		num = 0.5f * (num + magsqurd / num);
+		return num;
+
+	}
+
+	polar toPolar(plane p) {
+		polar pl = {};
+		pl.len = Mag(p);
+		pl.phi = asin(p.c / pl.len);
+		if (p.a == 0.0f) {
+			pl.theta = 0.0f;
+			return pl;
+		}
+		pl.theta = atan(p.b / p.a);
+		return pl;
+	}
+
+
 }
 
 

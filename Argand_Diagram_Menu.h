@@ -1,5 +1,5 @@
 #pragma once
-#include"Coniguration.h"
+
 #include"Complex.h"
 #include"children.h"
 #include"MenuMacroDef.h"
@@ -40,7 +40,6 @@ namespace Argand {
 
 	void SetupConverter(HWND Parent,std::vector<children>* __restrict children);
 
-	void SwapConfigState(WPARAM wp, ConfigSetup* config);
 	
 	void DisplayConverterResult(complex& complex, std::vector<children>* __restrict Children, HWND Parent);
 	
@@ -50,6 +49,10 @@ namespace Argand {
 	
 	void AddGeometryBox(HWND Parent, std::vector<children>* __restrict children);
 	
+}
+
+namespace Mats {
+	void SetupMats(HWND Parent, std::vector<children>* __restrict children);
 }
 
 

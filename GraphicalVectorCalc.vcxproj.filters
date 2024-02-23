@@ -45,9 +45,6 @@
     <ClCompile Include="MainWindow.cpp">
       <Filter>Source Files\MainWindow</Filter>
     </ClCompile>
-    <ClCompile Include="Configuration.cpp">
-      <Filter>Source Files\MainWindow</Filter>
-    </ClCompile>
     <ClCompile Include="Argand_Diagram_Menu.cpp">
       <Filter>Source Files\MainWindow</Filter>
     </ClCompile>
@@ -84,6 +81,12 @@
     <ClCompile Include="Scene2d.cpp">
       <Filter>Source Files\GraphicsWindow</Filter>
     </ClCompile>
+    <ClCompile Include="Scene3d.cpp">
+      <Filter>Source Files\GraphicsWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDX.cpp">
+      <Filter>Source Files\Utilities/Maths</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h">
@@ -93,9 +96,6 @@
       <Filter>Header Files\MainWindow</Filter>
     </ClInclude>
     <ClInclude Include="children.h">
-      <Filter>Header Files\MainWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="Coniguration.h">
       <Filter>Header Files\MainWindow</Filter>
     </ClInclude>
     <ClInclude Include="MainWindow.h">
@@ -143,14 +143,14 @@
     <ClInclude Include="Logger.h">
       <Filter>Header Files\Utilities/Maths</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Header Files\GraphicsWindow</Filter>
-    </ClInclude>
     <ClInclude Include="Scene2d.h">
       <Filter>Header Files\GraphicsWindow</Filter>
     </ClInclude>
     <ClInclude Include="Scene3d.h">
       <Filter>Header Files\GraphicsWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugDX.h">
+      <Filter>Header Files\Utilities/Maths</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -161,6 +161,15 @@
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="VS_NOTRANS.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PixelShader.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VertexShader.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Plane_Shader.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -1,14 +1,10 @@
-#include "Parser.h"
+#include"Parser.h"
 #include"MacroUtils.h"
 #include"StringUtils.h"
 #include"GeometryData.h"
 #include<sstream>
 
 
-void Parser::setParserConfig(ConfigSetup* config) {
-	m_config = *config;
-	
-}
 
 
 void Parser::setParserText(char* text, unsigned int flag) {
@@ -34,7 +30,6 @@ void Parser::setParserText(char* text, unsigned int flag) {
 }
 
 Parser::Parser() {
-	m_config = {};
 
 	currentString = nullptr;
 
@@ -329,6 +324,28 @@ GeomData Parser::ProcExprStrToGeom(char* txt) {
 		return g;
 	}
 
+	float a = 0.0f, b = 0.0f, c = 0.0f, d = 0.0f;
+
+	if (
+		4 == sscanf_s(txt,"%fx%fy%fz=%fd", &a, &b, &c, &d) 
+		|| 
+		3 == sscanf_s(txt, "0x%fy%fz=%fd", &b, &c, &d)
+		) {
+		
+		
+
+		g.data.mat.a = a;
+		g.data.mat.b = b;
+		g.data.mat.c = c;
+		g.data.mat.d = d;
+
+
+		
+		g.gType = MAT;
+		
+		return g;
+	}
+	
 	g.gType = NULLTYPE;
 	ERR("Syntax Error", "Invalid expression");
 	return g;

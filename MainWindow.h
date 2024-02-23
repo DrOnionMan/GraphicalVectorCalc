@@ -3,7 +3,6 @@
 #include<optional>
 #include<sstream>
 #include<vector>
-#include"Coniguration.h"
 #include"Argand_Diagram_Menu.h"
 #include"children.h"
 #include"Menu.h"
@@ -51,11 +50,13 @@ private:
 	static LRESULT CALLBACK InvokeMemberFunc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 	
 	LRESULT HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
-	void PollArgandEvents(WPARAM wParam, LPARAM lParam);
+	void PollMyEvents(WPARAM wParam, LPARAM lParam);
 	bool BufferFull()const;
 	void ClearChildWindowBuffer();
 	void WarningBuffOverflow();
 	void TrimBuffer();
+	
+
 
 private:
 	const Menus* pMenus;
@@ -66,7 +67,6 @@ public:
 	node* head = NULL;
 	bool GraphicsIsAlive;
 	gfxWindow* gwin;
-	ConfigSetup config;
 	HWND hWnd;
 	static constexpr inline unsigned int BufflenMax = 7u;
 	std::vector<children> childWindowBuff;

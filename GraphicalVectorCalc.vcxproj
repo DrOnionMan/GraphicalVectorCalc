@@ -172,7 +172,7 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Argand_Diagram_Menu.cpp" />
     <ClCompile Include="children.cpp" />
-    <ClCompile Include="Configuration.cpp" />
+    <ClCompile Include="DebugDX.cpp" />
     <ClCompile Include="GfxWindow.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="Keyboard.cpp" />
@@ -183,6 +183,7 @@
     <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Scene2d.cpp" />
+    <ClCompile Include="Scene3d.cpp" />
     <ClCompile Include="StringUtils.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
@@ -191,7 +192,7 @@
     <ClInclude Include="Argand_Diagram_Menu.h" />
     <ClInclude Include="children.h" />
     <ClInclude Include="Complex.h" />
-    <ClInclude Include="Coniguration.h" />
+    <ClInclude Include="DebugDX.h" />
     <ClInclude Include="GeometryData.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Keyboard.h" />
@@ -204,7 +205,6 @@
     <ClInclude Include="MKMath.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="Parser.h" />
-    <ClInclude Include="Scene.h" />
     <ClInclude Include="Scene2d.h" />
     <ClInclude Include="Scene3d.h" />
     <ClInclude Include="StringUtils.h" />
@@ -216,6 +216,24 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="PixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Plane_Shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="VertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="VS_NOTRANS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

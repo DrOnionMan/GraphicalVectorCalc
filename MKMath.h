@@ -16,6 +16,13 @@ namespace MKMaths {
 		f32 a;
 	};
 
+	struct plane {
+		f32 a;
+		f32 b;
+		f32 c;
+		f32 d;
+	};
+
 	template<typename T>
 	T Abs(T num) {
 		return num > 0 ? num : (num * -1);
@@ -33,6 +40,21 @@ namespace MKMaths {
 	};
 
 	f32 Dot(vec4& left, vec4& right);
+
+	struct polar {
+		f32 len;
+		f32 theta;
+		f32 phi;
+	};
+
+	
+	
+	inline f32 Mag(const plane p);
+
+	polar toPolar(plane p);
+
+
+	
 
 	class Mat4 {
 	public:

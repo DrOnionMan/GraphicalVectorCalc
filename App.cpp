@@ -30,10 +30,32 @@ void App::DoFrame() {
 	
 
 	wnd.gwin->GFX().ClearBuffer(0.0f, 0.0f, 0.0f);
-	if (wnd.gwin->kbd.KeyIsPressed('A')) {
-		wnd.gwin->GFX().PrintVp();
-	}
+	
+	if (wnd.gwin->GFX()._Dim) {
+		if (wnd.gwin->kbd.KeyIsPressed('A')) {
+			wnd.gwin->GFX().Arg_H += 0.1f;
+		}
+		if (wnd.gwin->kbd.KeyIsPressed('D')) {
+			wnd.gwin->GFX().Arg_H -= 0.1f;
+		}
+		if (wnd.gwin->kbd.KeyIsPressed('W')) {
+			wnd.gwin->GFX().Arg_V += 0.1f;
+		}
+		if (wnd.gwin->kbd.KeyIsPressed('S')) {
+			wnd.gwin->GFX().Arg_V -= 0.1f;
+		}
 
+		//ensure it is within the near and far viewing plane
+		const auto& a = wnd.gwin->mouse.Read();
+		if (a.GetType() == Mouse::Event::Type::WheelUp) {
+			if(wnd.gwin->GFX().DTS > -8.0f)
+			wnd.gwin->GFX().DTS -= 0.25f;
+		}
+		if (a.GetType() == Mouse::Event::Type::WheelDown) {
+			if (wnd.gwin->GFX().DTS < -1.5f)
+			wnd.gwin->GFX().DTS += 0.25f;
+		}
+	}
 	//wnd.gwin->GFX().DrawTriangle(Clock.Peek(),wnd.gwin->mouse.GetPosX() / 450.0f - 1.0f, -wnd.gwin->mouse.GetPosY() / 300.0f + 1.0f, L"PixelShader.cso");
 	wnd.gwin->GFX().Render();
 	wnd.gwin->GFX().EndFrame();
