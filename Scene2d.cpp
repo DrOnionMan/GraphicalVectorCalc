@@ -110,9 +110,8 @@ static bool lessthan(node* left, node* right) {
 //z=1.414*e^1.45i
 //|c-(1+2i)|=5
 //Arg(c-(1+5i))=1.45
-Scene2d::Scene2d(f32* swidth, f32* sheight, node* list, Graphics* __restrict gfx) : list(list), gfx(gfx), sh(sheight), sw(swidth), Dim(gfx->_Dim), 
-	meters({}) {
-	quicksort_c(this->list, last_node(this->list), lessthan);
+Scene2d::Scene2d(f32* swidth, f32* sheight, node* list, Graphics* __restrict gfx, UINT* _SF) : list(list), gfx(gfx), sh(sheight), sw(swidth), Dim(gfx->_Dim), 
+	meters({}),SF(_SF) {
 	if (!gfx->_Dim) {
 		GetMeterSize();
 		DefineTheMeter();
@@ -125,22 +124,19 @@ void Scene2d::Render() noexcept {
 	DefineTheMeter();
 	DrawAxis();
 
-	int i = 4;
+	int i = 0;
 	for (node* currentnode = list; currentnode != NULL; currentnode = currentnode->next) {
 		if (currentnode->data.gType == CIRCLE) {
 			DrawCircle(currentnode->data, colours.at(i));
-			colours.pop_back();
-			i--;
+			i++;
 		}
 		if (currentnode->data.gType == HLINE) {
 			DrawHline(currentnode->data, colours.at(i));
-			colours.pop_back();
-			i--;
+			i++;
 		}
 		if (currentnode->data.gType == CNUM) {
 			DrawCNum(currentnode->data, colours.at(i));
-			colours.pop_back();
-			i--;
+			i++;
 		}
 	}
 }
@@ -489,14 +485,13 @@ void Scene2d::DrawAxis() {
 //////////////
 //3d Stuff below here
 
-void Scene2d::DrawAxis3D() noexcept {
-	const auto CAx = colours.at(4);
-	colours.pop_back();
-	const auto CAy = colours.at(3);
-	colours.pop_back();
-	const auto CAz = colours.at(2);
-	colours.pop_back();
+void Scene2d::DrawAxis3D(void) noexcept {
+	const MKMaths::color CAx = { 255, 0, 0, 0 };
+
+	const MKMaths::color CAy = {0, 255, 0 ,0};
 	
+	const MKMaths::color CAz = {0, 0, 255, 0};
+
 	MKMaths::color white = { 255, 255, 255 , 0};
 
 	MKMaths::vertex AxisVerts[6] = {
@@ -532,45 +527,56 @@ void Scene2d::DrawAxis3D() noexcept {
 }
 
 //remove both
-#define blue 0, 0, 255 , 0
+
 /*
 1x+1y+1z=69
 */
 
+#define deg(x) ((int) (x * (180.0f/M_PI)))
 
-static MKMaths::Mat4 GetPlnTransform(MKMaths::plane& pln) {
+
+static MKMaths::Mat4 GetPlnTransform(MKMaths::plane& pln, UINT SF) {
 	using namespace MKMaths;
 	polar p = toPolar(pln);
+
+	//PrintNums<int>(2, deg(p.theta), deg(p.phi));
+
+	static std::vector<f32> ScaleFct = { 1.0f, 5.0f, 7.5f, 10.0f, 15.0f, 25.0f, 50.0f, 100.0f, 250.0f, 500.0f, 750.0f, 1000.0f };
+
 
 	struct vec3 {
 		f32 x, y, z;
 	};
 
+
 	
 
-	const f32 lambda = (pln.d / ((pln.a * pln.a) + (pln.b * pln.b) + (pln.c * pln.c))) * (1.0f / 1000.0f);
+	const f32 lambda = (pln.d / ((pln.a * pln.a) + (pln.b * pln.b) + (pln.c * pln.c))) * (1.0f / ScaleFct.at(SF));
 	//multiplied by scale factor to ensure translaton is within bounds 1.0f -> -1.0f
 	
 	const vec3 cP = { lambda * pln.a , lambda * pln.b, lambda * pln.c };
 
 
 
-	Mat4 ret =  Mat4::Rotate3D_y_t(p.phi) * Mat4::Rotate3D_z_t(p.theta);
+	Mat4 ret = Mat4::Rotate3D_z_t(-p.theta) * Mat4::Rotate3D_y_t(p.phi);
 
-	ret = ret * Mat4::Translate_t(cP.x, cP.y, cP.z);
+
+	!ret;
+
+	Mat4 f = ret * Mat4::Translate_t(cP.x, cP.y, cP.z);
 
 	
-	return ret;
+	return f;
 }
 
 
-void Scene2d::DrawPlane(MKMaths::plane pln) noexcept {
+void Scene2d::DrawPlane(MKMaths::plane pln, const MKMaths::color& col) noexcept {
 	using namespace MKMaths;
 	vertex plnVerts[] = {
-		{0.0f, -1.0f, -1.0f, 1.0f, blue},
-		{0.0f, -1.0f, 1.0f, 1.0f, blue},
-		{0.0f, 1.0f, -1.0f, 1.0f, blue},
-		{0.0f, 1.0f, 1.0f, 1.0f, blue}
+		{0.0f, -1.0f, -1.0f, 1.0f, col},
+		{0.0f, -1.0f, 1.0f, 1.0f, col},
+		{0.0f, 1.0f, -1.0f, 1.0f, col},
+		{0.0f, 1.0f, 1.0f, 1.0f, col}
 	};
 
 
@@ -580,7 +586,7 @@ void Scene2d::DrawPlane(MKMaths::plane pln) noexcept {
 	};
 
 
-	Mat4 t = GetPlnTransform(pln);
+	Mat4 t = GetPlnTransform(pln, *SF);
 #ifndef NDEBUG
 	static int i = 0;
 	if (i < 3) {
@@ -604,7 +610,7 @@ void Scene2d::DrawPlane(MKMaths::plane pln) noexcept {
 
 
 void Scene2d::RenderMatSystem() noexcept {
-	
+	uint8_t i = 0;
 	for (node* p = list; p != NULL; p = p->next) {
 		if (p->data.gType == MAT) {
 			MKMaths::plane pln = {
@@ -613,12 +619,10 @@ void Scene2d::RenderMatSystem() noexcept {
 				p->data.data.mat.c,
 				p->data.data.mat.d,
 			};
-			DrawPlane(pln);
+			DrawPlane(pln, Cols3D.at(i));
 		}
+		i++;
 	}
-
-	
-	
 }
 
 

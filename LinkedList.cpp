@@ -114,6 +114,7 @@ node* partition(node* first, node* last, bool fn(node* left, node* right)){
 
 
 void quicksort_c(node* first, node* last, bool fn(node* right, node* left)) {
+	MB("Called The Sort");
 	if (first == last) {
 		return;
 	}

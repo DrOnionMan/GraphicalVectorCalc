@@ -193,9 +193,9 @@ namespace MKMaths {
 	}
 	Mat4 Mat4::Rotate3D_y_t(f32 theta) {
 		f32 Rot[16] = {
-		cos(theta), 0, sin(theta), 0,
+		cos(theta), 0, -sin(theta), 0,
 		0, 1, 0, 0,
-		-sin(theta), 0, cos(theta), 0,
+		sin(theta), 0, cos(theta), 0,
 		0, 0, 0, 1
 		};
 		Mat4 ret(Rot);
@@ -266,17 +266,41 @@ namespace MKMaths {
 		return num;
 
 	}
+#include<assert.h>
+
+
 
 	polar toPolar(plane p) {
+# define M_PI           3.14159265358979323846  
+#define deg(x) ((int) (x * (180.0f/M_PI)))
 		polar pl = {};
 		pl.len = Mag(p);
 		pl.phi = asin(p.c / pl.len);
 		if (p.a == 0.0f) {
-			pl.theta = 0.0f;
+			if (p.b < 0.0f) {
+				pl.theta = -M_PI / 2;
+			}
+			else {
+				pl.theta = M_PI / 2;
+			}
 			return pl;
 		}
-		pl.theta = atan(p.b / p.a);
+
+		f32 extraConst = 0.0f;
+		//assert(p.a == -1.0f && p.b == -1.0f);
+		if (p.a < 0.0f && p.b < 0.0f) {
+			pl.theta = M_PI + atan(p.b / p.a);
+		}
+		else if (p.a < 0.0f) {
+			pl.theta = M_PI + atan(p.b / p.a);
+		}
+		else {
+			pl.theta = atan(p.b / p.a);
+		}
+
+
 		return pl;
+#undef M_PI
 	}
 
 

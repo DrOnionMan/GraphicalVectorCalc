@@ -25,18 +25,11 @@ namespace wrl = Microsoft::WRL;
 
 
 
-static bool lessthan(node* left, node* right) {
-	if (left->data.gType < right->data.gType) {
-		return true;
-	}
-
-	return false;
-}
 
 
 
 Graphics::Graphics(HWND hWnd, float* width, float* height, node* list, bool Dim) 
-	: vpData({ width, height }), glist(list), _Dim(Dim),DTS(-5.0f), Arg_H(0.0f),Arg_V(0.0f) {
+	: vpData({ width, height }), glist(list), _Dim(Dim),DTS(-5.0f), Arg_H(0.0f),Arg_V(0.0f),SF(7u) {
 	DXGI_SWAP_CHAIN_DESC sd = {};
 	sd.BufferDesc.Width = 0;
 	sd.BufferDesc.Height = 0;
@@ -128,10 +121,7 @@ Graphics::Graphics(HWND hWnd, float* width, float* height, node* list, bool Dim)
 
 
 
-	quicksort_c(glist, last_node(glist), lessthan);
 
-
-	
 
 
 	
@@ -343,13 +333,18 @@ D3D11_VIEWPORT* Graphics::GetMyVP(void) const noexcept {
 			vp->Height = vH;
 			return vp;
 		}
-		if (isEven) {
+		else if (isEven) {
 			vp->Width = vW - 1u;
 			vp->Height = vH;
 			return vp;
 		}
-		if (isEvenStrikesBack) {
+		else if (isEvenStrikesBack) {
 			vp->Width = vW;
+			vp->Height = vH - 1u;
+			return vp;
+		}
+		else {
+			vp->Width = vW - 1;
 			vp->Height = vH - 1u;
 			return vp;
 		}
@@ -447,12 +442,9 @@ void Graphics::Draw_3D(UINT VertexCount, D3D11_PRIMITIVE_TOPOLOGY topology,
 
 
 
-
-
-#include"Scene2d.h"
-
 void Graphics::Render(void) {
-	Scene2d scene(vpData.width, vpData.height, glist, this);
+	Scene2d scene(vpData.width, vpData.height, glist, this, &SF);
+
 	if (_Dim) {
 		scene.Render3D();
 		return;

@@ -13,7 +13,6 @@
 #include<directxMath.h>
 
 
-
 class Graphics{
 public:
 
@@ -57,6 +56,7 @@ public:
 	f32 DTS;
 	f32 Arg_H;
 	f32 Arg_V;
+	UINT SF;
 
 
 private:

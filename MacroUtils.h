@@ -9,7 +9,7 @@
 
 #define NEW OutputDebugString("\n")
 #define MB(x) (MessageBox(nullptr, x, "Test", MB_ICONERROR))
-#define ERR(x, y) (MessageBox(nullptr, y, x, MB_ICONERROR))
+#define ERR(Title, Msg) (MessageBox(nullptr, Msg, Title, MB_ICONERROR))
 #define SIZE(x) ((sizeof(x)/ sizeof(x[0]) ))
 #define OUTSTR(x) NEW; OutputDebugString(x)
 

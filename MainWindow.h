@@ -55,6 +55,8 @@ private:
 	void ClearChildWindowBuffer();
 	void WarningBuffOverflow();
 	void TrimBuffer();
+
+	void MakeKey(bool is3D)noexcept;
 	
 
 
@@ -68,6 +70,6 @@ public:
 	bool GraphicsIsAlive;
 	gfxWindow* gwin;
 	HWND hWnd;
-	static constexpr inline unsigned int BufflenMax = 7u;
+	static constexpr inline unsigned int BufflenMax = 8u;
 	std::vector<children> childWindowBuff;
 };

@@ -151,6 +151,84 @@ LRESULT WINAPI Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 
 
+
+static bool lessthan(node* left, node* right) {
+	if (left->data.gType < right->data.gType) {
+		return true;
+	}
+
+	return false;
+}
+
+
+
+void Window::MakeKey(bool is3D) noexcept{
+	if (!is3D) {
+		std::vector<std::string> cols = {"Pink", "Yellow", "Blue", "Orange", "Red"};
+		std::ostringstream oss;
+		oss << "Key: \n";
+		int i = 0;
+		for (node* cn = head; cn != NULL; cn = cn->next) {
+			oss << cn->data.name << " -> " << cols.at(i) << "\n\n";
+			i++;
+		}
+
+		
+
+		children temp = { 0 };
+		temp.associate = nullptr;
+		temp.id = CreateWindow("Static",
+			oss.str().c_str(),
+			WS_VISIBLE | WS_CHILD | WS_BORDER,
+			450, 290, 300,250,
+			this->hWnd, NULL, NULL, NULL
+		);
+
+		temp.type = STATIC;
+		childWindowBuff.push_back(temp);
+	}
+
+	else {
+
+		std::vector<std::string> cols = { "Pink", "Orange", "Light Blue"};
+		std::ostringstream oss;
+		oss << "Key: \n";
+		int i = 0;
+
+		
+		
+		
+		oss << "Colour of axis +ve -> -ve\n"
+			<< "X-Axis = Red -> white\n" <<
+			"Y-Axis = Green -> white\n" <<
+			"Z-Axis = Blue -> white\n\n";
+
+		for (node* cn = head; cn != NULL; cn = cn->next) {
+			oss << "Plane :\n" 
+				<< cn->data.data.mat.a << "x + " << cn->data.data.mat.b << "y + "<<
+				cn->data.data.mat.c << "z = " << cn->data.data.mat.d << " -> " << cols.at(i) << "\n\n";
+			
+			i++;
+		}
+
+		
+
+		children temp = { 0 };
+		temp.associate = nullptr;
+		temp.id = CreateWindow("Static",
+			oss.str().c_str(),
+			WS_VISIBLE | WS_CHILD | WS_BORDER,
+			450, 290, 300, 250,
+			this->hWnd, NULL, NULL, NULL
+		);
+
+		temp.type = STATIC;
+		childWindowBuff.push_back(temp);
+	}
+}
+
+
+
 typedef uint64_t ui64;
 void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 	
@@ -213,8 +291,11 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 	}break;
 	case DRAW_ARGAND:
 	{
+		if (GraphicsIsAlive) {
+			return;
+		}
 		GeomData gData = { 0 };
-		//DeleteList(head);
+		
 		for (children c : childWindowBuff) {
 			if (c.type == EDIT) {
 				gData = parser.ProcExprStrToGeom(Argand::GetStringFromEdit(&c));
@@ -222,13 +303,21 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 					DeleteList(head);
 					return;
 				}
+				for (node* currentnode = head; currentnode != NULL; currentnode = currentnode->next) {
+					if (currentnode->data.name == gData.name) {
+						DeleteList(head);
+						ERR("Input Error", "Each geometry must have a unique identifier");
+						return;
+					}
+				}
 				head += gData;
-				
 				
 			}
 		}
 
-		quick_sort(head, last_node(head));
+		quicksort_c(head, last_node(head), lessthan);
+
+		MakeKey(false);
 		
 		gwin = new gfxWindow(900, 600, "Graphics Window", { &GraphicsIsAlive, false }, head);
 		GraphicsIsAlive = true;
@@ -245,9 +334,11 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 		}
 	}break;
 	case M_TRANSMIT: {
+		if (GraphicsIsAlive) {
+			return;
+		}
 		GeomData gData = { 0 };
-		//DeleteList(head);
-		
+		//foreach
 		for (children c : childWindowBuff) {
 			if (c.type == EDIT) {
 				gData = parser.ProcExprStrToGeom(Argand::GetStringFromEdit(&c));
@@ -259,10 +350,13 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 			}
 		}
 		
+		MakeKey(true);
 
 		gwin = new gfxWindow(900, 600, "Graphics Window", { &GraphicsIsAlive, true }, head);
 		GraphicsIsAlive = true;
 		
+
+
 		
 	}break;
 	}
@@ -315,6 +409,16 @@ void Window::WarningBuffOverflow() {
 }
 
 bool Window::BufferFull() const{
+	int count = 0;
+	for (const auto& c : childWindowBuff) {
+		if (c.type == EDIT) {
+			count++;
+		}
+	}
+	if (count == 5) {
+		return true;
+	}
+
 	return childWindowBuff.size() < BufflenMax ? false : true;
 }
 

@@ -87,6 +87,7 @@ void Argand::SetupDraw(HWND Parent, std::vector<children>*__restrict Children) {
 	);
 	AddGeom_btn.associate = nullptr;
 	Children->push_back(AddGeom_btn);
+
 }
 
 typedef uint64_t ui64;

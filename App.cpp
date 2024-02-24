@@ -26,10 +26,13 @@ float Timer::Peek() const {
 
 App::App() : wnd(800, 600, "MainWnd") {}
 
+int i = 0;
+
 void App::DoFrame() {
 	
 
 	wnd.gwin->GFX().ClearBuffer(0.0f, 0.0f, 0.0f);
+	static bool wasPressed = false;
 	
 	if (wnd.gwin->GFX()._Dim) {
 		if (wnd.gwin->kbd.KeyIsPressed('A')) {
@@ -45,6 +48,28 @@ void App::DoFrame() {
 			wnd.gwin->GFX().Arg_V -= 0.1f;
 		}
 
+		
+		if (wnd.gwin->kbd.KeyIsPressed('O') && !wasPressed) {
+			if (wnd.gwin->GFX().SF > 0u) {
+				wasPressed = true;
+				std::ostringstream oss;
+				oss << wnd.gwin->GFX().SF << "\n";
+				wnd.gwin->GFX().SF -= 1u;
+				OutputDebugString(oss.str().c_str());
+			}
+		}
+
+		if (wnd.gwin->kbd.KeyIsPressed('I') && !wasPressed) {
+			if (wnd.gwin->GFX().SF < 11u) {
+				wasPressed = true;
+				std::ostringstream oss;
+				oss << wnd.gwin->GFX().SF << "\n";
+				wnd.gwin->GFX().SF += 1u;
+				OutputDebugString(oss.str().c_str());
+			}
+		}
+		
+		
 		//ensure it is within the near and far viewing plane
 		const auto& a = wnd.gwin->mouse.Read();
 		if (a.GetType() == Mouse::Event::Type::WheelUp) {
@@ -55,8 +80,16 @@ void App::DoFrame() {
 			if (wnd.gwin->GFX().DTS < -1.5f)
 			wnd.gwin->GFX().DTS += 0.25f;
 		}
+		
 	}
-	//wnd.gwin->GFX().DrawTriangle(Clock.Peek(),wnd.gwin->mouse.GetPosX() / 450.0f - 1.0f, -wnd.gwin->mouse.GetPosY() / 300.0f + 1.0f, L"PixelShader.cso");
+	
+	if (i % 35 == 0) {
+		wasPressed = false;
+		//MB("happened");
+	}
+
+
+	i++;
 	wnd.gwin->GFX().Render();
 	wnd.gwin->GFX().EndFrame();
 }

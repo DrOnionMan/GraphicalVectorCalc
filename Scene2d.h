@@ -6,7 +6,7 @@
 
 class Scene2d {
 public:
-	Scene2d(f32* swidth, f32* sheight, node* list, Graphics* __restrict gfx);
+	Scene2d(f32* swidth, f32* sheight, node* list, Graphics* __restrict gfx, UINT* _SF);
 	~Scene2d();
 	Scene2d(const Scene2d&) = delete;
 	Scene2d& operator=(const Scene2d&) = delete;
@@ -32,6 +32,7 @@ public:
 
 	f32* sw, * sh;
 	meter meters;
+	UINT* SF;
 
 private:
 	void DefineTheMeter();
@@ -44,10 +45,12 @@ private:
 	void DrawAxis3D() noexcept;
 	void RenderMatSystem() noexcept;
 	void RefreshMeters() noexcept;
-	void DrawPlane(MKMaths::plane pln) noexcept;
+	void DrawPlane(MKMaths::plane pln, const MKMaths::color& col) noexcept;
 	void GetAR() noexcept;
 
 	std::vector<MKMaths::color> colours = { {238, 87, 131, 0},{255, 255, 51, 0}, {0, 255, 255, 0}, {255, 153, 51}, {185, 37, 14, 0} };
+	std::vector<MKMaths::color> Cols3D = { {245,134,231, 0} ,{ 248,141,29, 0} , {42,240,227, 0} };
+
 
 	
 	node* list;
