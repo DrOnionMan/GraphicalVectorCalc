@@ -233,6 +233,7 @@ typedef uint64_t ui64;
 void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 	
 
+
 	
 	switch (wParam) {
 		//Argand Diagram Shiz
@@ -315,6 +316,10 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 			}
 		}
 
+		if (!head) {
+			ERR("Argument Error", "No geometry arguments provided.");
+			return;
+		}
 		quicksort_c(head, last_node(head), lessthan);
 
 		MakeKey(false);
@@ -350,6 +355,10 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 			}
 		}
 		
+		if (!head) {
+			ERR("Argument Error", "No geometry arguments provided.");
+			return;
+		}
 		MakeKey(true);
 
 		gwin = new gfxWindow(900, 600, "Graphics Window", { &GraphicsIsAlive, true }, head);

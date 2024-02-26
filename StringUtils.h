@@ -26,27 +26,23 @@ char* FindUnexpectedToken(char* buff, bool complex);
 
 int findIndex(char* buff, char ch);
 
-#ifdef _DEBUG
-template<typename T>
-void PrintNums(int count...) {
-	std::ostringstream oss;
-	va_list ptr;
-	va_start(ptr, count);
 
-	for (int i = 0; i < count; i++) {
-		oss << va_arg(ptr, T) << " , ";
+#ifndef NDEBUG
+
+static std::ostringstream oss;
+template<typename T, typename...Args>
+void PrintNums(T first, Args...args) { 
+	oss << first;
+	if constexpr (sizeof...(args) > 0) {
+		oss << " , ";
+		PrintNums(args...);
 	}
-	va_end(ptr);
-
-	std::string s = oss.str();
-
-
-	const char* txt = s.c_str();
-
-
-	MB(txt);
+	else {
+		MB(oss.str().c_str());
+		oss = {};
+	}
 }
+
 #endif
 
 
-void DeleteBuffers(int count ...);

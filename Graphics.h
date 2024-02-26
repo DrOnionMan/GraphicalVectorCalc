@@ -26,12 +26,8 @@ public:
 		pContext->ClearRenderTargetView(pTarget.Get(), color);
 		pContext->ClearDepthStencilView(pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 	}
-	//Legacy remove
 	
-	//legacy remove
-	void PrintVp(void) {
-		PrintNums<double>(2, *vpData.height, *vpData.width);
-	}
+	
 
 	void Draw(UINT VertexCount, D3D11_PRIMITIVE_TOPOLOGY topology,
 		std::pair<const wchar_t*, const wchar_t*> shaders);

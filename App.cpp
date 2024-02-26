@@ -26,7 +26,7 @@ float Timer::Peek() const {
 
 App::App() : wnd(800, 600, "MainWnd") {}
 
-int i = 0;
+static inline unsigned long long i = 0;
 
 void App::DoFrame() {
 	
@@ -52,20 +52,18 @@ void App::DoFrame() {
 		if (wnd.gwin->kbd.KeyIsPressed('O') && !wasPressed) {
 			if (wnd.gwin->GFX().SF > 0u) {
 				wasPressed = true;
-				std::ostringstream oss;
-				oss << wnd.gwin->GFX().SF << "\n";
+				
 				wnd.gwin->GFX().SF -= 1u;
-				OutputDebugString(oss.str().c_str());
+				
 			}
 		}
 
 		if (wnd.gwin->kbd.KeyIsPressed('I') && !wasPressed) {
 			if (wnd.gwin->GFX().SF < 11u) {
 				wasPressed = true;
-				std::ostringstream oss;
-				oss << wnd.gwin->GFX().SF << "\n";
+				
 				wnd.gwin->GFX().SF += 1u;
-				OutputDebugString(oss.str().c_str());
+				
 			}
 		}
 		
