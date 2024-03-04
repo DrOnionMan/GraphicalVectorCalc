@@ -11,6 +11,7 @@ struct node {
 	node* next;
 };
 
+//not useful
 void LogList(node* list);
 
 
@@ -18,13 +19,12 @@ void LogList(node* list);
 //sketchy overload with the ptr by ref 
 void operator+=(node*& nodey, GeomData& data);
 
-node* partition(node* first, node* last);
+
 node* last_node(node* head);
-void quick_sort(node* first, node* last);
 
 
-//for costom sort other than overloaded < params
+
+//for costom sort use callback function
 void quicksort_c(node* first, node* last, bool fn(node* right, node* left));
 node* partition(node* first, node* last, bool fn(node* left, node* right));
-
 void DeleteList(node* list);

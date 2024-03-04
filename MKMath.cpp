@@ -113,42 +113,45 @@ namespace MKMaths {
 
 
 #define Pragma_OMP _Pragma("\"omp parallel for\"")
-	
-
 
 	//transopses 4x4 matricies
 	void Mat4::transpose() const {
-
+		//member
+		//overloaded ! just does this
 		f32 arr[16] = { 0 };
+		Pragma_OMP
 		for (int n = 0; n < 16; n++) {
 			int i = n / 4;
 			int j = n % 4;
 			arr[n] = this->mat[4 * j + i];
 		}
-
 		//Super sketchy cast
-		memcpy(const_cast<f32*>(this->mat), arr, 16 * sizeof(float));
+		std::memcpy(const_cast<f32*>(this->mat), arr, 16 * sizeof(float));
 	}
 
-
-
-	Pragma_OMP
 	Mat4 Mat4::Mul(const Mat4& left, const Mat4& right, const size_t matSize) {
+		//ofc this is static
+		//const & ofc
 		Mat4 ret;
-
+		//why in the black magic is this faster than the pseudocode :)
+		//alignas for the cache optimisations
+		//most common cache width
 		alignas(64) float f[16] = { 0 };
-
-		
-			for (int i = 0; i < matSize; i++) {
-				for (int j = 0; j < matSize; j++) {
-					int cIndex = i * matSize + j;
-					for (int k = 0; k < matSize; k++) {
-						int aIndex = i * matSize + k;
-						int bIndex = k * matSize + j;
-						f[cIndex] += left.mat[aIndex] * right.mat[bIndex];
-					}
+		//ez for loop
+		Pragma_OMP
+		for (int i = 0; i < matSize; i++) {
+			for (int j = 0; j < matSize; j++) {
+				int cIndex = i * matSize + j;
+				for (int k = 0; k < matSize; k++) {
+					int aIndex = i * matSize + k;
+					int bIndex = k * matSize + j;
+					//fill local buffer
+					f[cIndex] += left.mat[aIndex] * right.mat[bIndex];
 				}
 			}
+		}
+		//OVERLOAD
+		//just copies the buffer into matrix
 		return ret(f);
 	}
 
@@ -241,30 +244,26 @@ namespace MKMaths {
 	}
 
 
-
+	//copies bits
 	template<class U, class T>
 	static constexpr U pun_cast(const T& val) {
 		return std::bit_cast<U>(val);
 	}
-
 	inline f32 Mag(const plane p) {
 		f32 magsqurd = (p.a * p.a) + (p.b * p.b) + (p.c * p.c);
-
 		int32_t temp;
 		float num;
-
 		num = magsqurd;
-
-
+		//cast to 32 bit int
 		temp = *pun_cast<uint32_t*>(&num);
-		temp = 0x1fbc7fcb + (temp >> 1);
-
+		//magic
+		temp = 0x1fbc5531 + (temp >> 1);
+		//cast back to float
 		num = *pun_cast<f32*>(&temp);
-
+		//2 newton iterations ( 1 wasnt enough lmao)
 		num = 0.5f * (num + magsqurd / num);
 		num = 0.5f * (num + magsqurd / num);
 		return num;
-
 	}
 #include<assert.h>
 
@@ -274,8 +273,11 @@ namespace MKMaths {
 # define M_PI           3.14159265358979323846  
 #define deg(x) ((int) (x * (180.0f/M_PI)))
 		polar pl = {};
+		//get the mag
 		pl.len = Mag(p);
+		//angle from z
 		pl.phi = asin(p.c / pl.len);
+		//cover obvious edge cases
 		if (p.a == 0.0f) {
 			if (p.b < 0.0f) {
 				pl.theta = -M_PI / 2;
@@ -285,9 +287,8 @@ namespace MKMaths {
 			}
 			return pl;
 		}
-
-		f32 extraConst = 0.0f;
 		//assert(p.a == -1.0f && p.b == -1.0f);
+		//again cover edge cases here
 		if (p.a < 0.0f && p.b < 0.0f) {
 			pl.theta = M_PI + atan(p.b / p.a);
 		}
@@ -295,15 +296,13 @@ namespace MKMaths {
 			pl.theta = M_PI + atan(p.b / p.a);
 		}
 		else {
+			//otherwise its atan
 			pl.theta = atan(p.b / p.a);
 		}
-
-
 		return pl;
+#undef deg
 #undef M_PI
 	}
-
-
 }
 
 

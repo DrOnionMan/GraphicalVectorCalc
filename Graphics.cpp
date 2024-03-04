@@ -47,11 +47,18 @@ Graphics::Graphics(HWND hWnd, float* width, float* height, node* list, bool Dim)
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	sd.Flags = 0;
 
+	//Debug info obviously doesnt need to be included in Release
+#ifndef NDEBUG
+	constexpr auto DevFlag = D3D11_CREATE_DEVICE_DEBUG;
+#else
+	constexpr auto DevFlag = 0;
+#endif
+
 	FUNC_ASSERT(D3D11CreateDeviceAndSwapChain(
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
 		nullptr,
-		D3D11_CREATE_DEVICE_DEBUG,
+		DevFlag,
 		nullptr,
 		0,
 		D3D11_SDK_VERSION,
@@ -72,7 +79,7 @@ Graphics::Graphics(HWND hWnd, float* width, float* height, node* list, bool Dim)
 	ID3D11RasterizerState* noCullRasterizerState;
 	FUNC_ASSERT(pDevice->CreateRasterizerState(&rasterizerDesc, &noCullRasterizerState));
 
-	
+	//bind to pipeline
 	pContext->RSSetState(noCullRasterizerState);
 
 
@@ -143,42 +150,39 @@ Graphics::~Graphics() {
 
 
 void Graphics::EndFrame() {
-	pSwap->Present(1u, 0u);
+	FUNC_ASSERT(pSwap->Present(1u, 0u));
 }
 
 void Graphics::SetShaders(const wchar_t* VertexShaderPath, const wchar_t* PixelShaderPath) {
-
-
 	//local blob as when using the one in the class i run into issues.
-
-
+	// 
+	//bind pixel shader
 	wrl::ComPtr<ID3D11PixelShader> pPixelShader;
-	D3DReadFileToBlob(PixelShaderPath, &pBlob);
-	pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader);
+	FUNC_ASSERT(D3DReadFileToBlob(PixelShaderPath, &pBlob));
+	FUNC_ASSERT(pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader));
 	pContext->PSSetShader(pPixelShader.Get(), nullptr, 0u);
 
 
 
-
-
+	//bind vertex shader
 	wrl::ComPtr<ID3D11VertexShader> pVertexShader;
-
-	D3DReadFileToBlob(VertexShaderPath, &pBlob);
-	pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader);
+	FUNC_ASSERT(D3DReadFileToBlob(VertexShaderPath, &pBlob));
+	FUNC_ASSERT(pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader));
 	pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
-
 }
 
 
 
 
 void Graphics::BindVertexBuffer(MKMaths::vertex* verts, UINT array_size) {
+	//create ptr
 	wrl::ComPtr<ID3D11Buffer> pVertexBuffer;
 	D3D11_BUFFER_DESC bd = {};
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.CPUAccessFlags = 0u;
 	bd.MiscFlags = 0u;
+	//obvious
 	bd.ByteWidth = sizeof(MKMaths::vertex) * array_size;
 	bd.StructureByteStride = sizeof(MKMaths::vertex);
 
@@ -188,6 +192,7 @@ void Graphics::BindVertexBuffer(MKMaths::vertex* verts, UINT array_size) {
 	FUNC_ASSERT(pDevice->CreateBuffer(&bd, &sd, &pVertexBuffer));
 	const UINT stride = sizeof(MKMaths::vertex);
 	const UINT offset = 0u;
+	//set the buff
 	pContext->IASetVertexBuffers(0u, 1u, pVertexBuffer.GetAddressOf(), &stride, &offset);
 
 }
@@ -196,6 +201,7 @@ void Graphics::BindVertexBuffer(MKMaths::vertex* verts, UINT array_size) {
 
 
 void Graphics::BindIndexBuffer(UINT* indicies, UINT array_size) {
+	//ptr
 	wrl::ComPtr<ID3D11Buffer> pIndexBuffer;
 
 	D3D11_BUFFER_DESC ibd = {};
@@ -203,29 +209,32 @@ void Graphics::BindIndexBuffer(UINT* indicies, UINT array_size) {
 	ibd.Usage = D3D11_USAGE_DEFAULT;
 	ibd.CPUAccessFlags = 0u;
 	ibd.MiscFlags = 0u;
+	//obvs
 	ibd.ByteWidth = sizeof(UINT) * array_size;
 	ibd.StructureByteStride = sizeof(unsigned short);
 	D3D11_SUBRESOURCE_DATA isubData = {};
 	isubData.pSysMem = indicies;
 
 	FUNC_ASSERT(pDevice->CreateBuffer(&ibd, &isubData, &pIndexBuffer));
-
+	//using 32 bit uint
 	pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
 
 
 }
 
 void Graphics::BindConstantBuffer_Matrix(const MKMaths::Mat4& matrix) {
+	//float4x4 for the shader
 	struct ConstantBuffer {
 		f32 ShaderFmt[4][4];
 	};
 
 	ConstantBuffer cBuff = { 0 };
-
+	//transpose
+	//OVERLOAD
 	!matrix;
 
 
-
+	//fill cbuff with matrix info
 	matrix.ToShader(cBuff.ShaderFmt);
 
 
@@ -312,22 +321,31 @@ void Graphics::BindConstantBuffer_DXMatrix(DirectX::XMMATRIX& transform) {
 
 
 D3D11_VIEWPORT* Graphics::GetMyVP(void) const noexcept {
+	//macro coz i cba writing this out
 #define VP D3D11_VIEWPORT
+	//dynamic allocation
 	VP* vp = (VP*)malloc(sizeof(VP));
+	//am i null???
 	if (vp) {
+		//this has the same eg=ffect as calloc, could use calloc
+		//but i prefer malloc
+		//this is coz you should never use ininitialised memory in a struct ever
+		//can cause undefined behaviour
 		ZeroMemory(vp, sizeof(VP));
-
 		vp->MinDepth = 0;
 		vp->MaxDepth = 1;
 		vp->TopLeftX = 0;
 		vp->TopLeftY = 0;
-
+		//get width and height as an integer
 		UINT vH = (UINT)*vpData.height;
 		UINT vW = (UINT)*vpData.width;
-
+		//WHY DOESNT MSDN MENTION THIS
+		//to draw lines consistently the WINDOW WIDTH AND HEIGHT MUST BE EVEN
+		//WHYYYYYYYYYYYYYYY
 		const bool isEven = (vH % 2 == 0);
+		//had abit of fun here
 		const bool isEvenStrikesBack = (vW % 2 == 0);
-
+		//handles the cases for even and odd
 		if (isEven && isEvenStrikesBack) {
 			vp->Width = vW;
 			vp->Height = vH;
@@ -350,6 +368,7 @@ D3D11_VIEWPORT* Graphics::GetMyVP(void) const noexcept {
 		}
 	}
 	else {
+		//obvious NULLPTR return if malloc fails
 		return nullptr;
 	}
 #undef VP
@@ -358,7 +377,10 @@ D3D11_VIEWPORT* Graphics::GetMyVP(void) const noexcept {
 
 void Graphics::Draw(UINT VertexCount, D3D11_PRIMITIVE_TOPOLOGY topology,
 	std::pair<const wchar_t*, const wchar_t*> shaders) {
+	//func is 4 2d stuff
+	//set shaders
 	SetShaders(shaders.first, shaders.second);
+	//get vp & bind
 	if(D3D11_VIEWPORT* vp = GetMyVP()){
 		pContext->RSSetViewports(1u, vp);
 		free(vp);
@@ -369,6 +391,7 @@ void Graphics::Draw(UINT VertexCount, D3D11_PRIMITIVE_TOPOLOGY topology,
 	wrl::ComPtr<ID3D11InputLayout> pInLay;
 	const D3D11_INPUT_ELEMENT_DESC ied[] = {
 		{"Position", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0u, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		//offset set for col info as its passed in my Vertex buffer
 		{"Colour", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 16u, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
 
@@ -379,13 +402,12 @@ void Graphics::Draw(UINT VertexCount, D3D11_PRIMITIVE_TOPOLOGY topology,
 	));
 
 
-
 	pContext->IASetInputLayout(pInLay.Get());
 
 	pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), nullptr);
 
 	pContext->IASetPrimitiveTopology(topology);
-
+	//draw :)
 	pContext->DrawIndexed(VertexCount, 0u, 0u);
 }
 
@@ -395,22 +417,20 @@ void Graphics::Draw(UINT VertexCount, D3D11_PRIMITIVE_TOPOLOGY topology,
 void Graphics::Draw_3D(UINT VertexCount, D3D11_PRIMITIVE_TOPOLOGY topology,
 	std::pair<const wchar_t*, const wchar_t*> shaders, f32 VW, f32 VH) noexcept {
 	using namespace MKMaths;
+	//set those shaders
 	SetShaders(shaders.first, shaders.second);
 
-	
-
-	
-
+	//perspective transform
+	//OVERLOAD
 	MKMaths::Mat4 mat =
 		Mat4::Rotate3D_y_t(Arg_H) *
 		Mat4::Rotate3D_x_t(Arg_V) *
 		Mat4::Translate_t(0, 0, DTS) *
 		Mat4::PerspectiveRH(VW, VH, 0.5f, 10.0f);
+	BindConstantBuffer_Matrix(mat, 0u);//bound to slot 0 in VS
 
-	
 
-	BindConstantBuffer_Matrix(mat, 0u);
-
+	//get vp & bind
 	if (D3D11_VIEWPORT* vp = GetMyVP()) {
 		pContext->RSSetViewports(1u, vp);
 		free(vp);
@@ -422,6 +442,7 @@ void Graphics::Draw_3D(UINT VertexCount, D3D11_PRIMITIVE_TOPOLOGY topology,
 	wrl::ComPtr<ID3D11InputLayout> pInLay;
 	const D3D11_INPUT_ELEMENT_DESC ied[] = {
 		{"Position", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0u, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		//same as 2d
 		{"Colour", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 16u, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
 
@@ -443,12 +464,14 @@ void Graphics::Draw_3D(UINT VertexCount, D3D11_PRIMITIVE_TOPOLOGY topology,
 
 
 void Graphics::Render(void) {
+	//hate this but void* cast was bugging
 	Scene2d scene(vpData.width, vpData.height, glist, this, &SF);
-
+	//if 3d?
 	if (_Dim) {
 		scene.Render3D();
 		return;
 	}
+	//else
 	scene.Render();
 }
 
@@ -485,11 +508,11 @@ void Graphics::Drawtest(void) {
 		{"Position", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0u, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{"Colour", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 16u, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
-	pDevice->CreateInputLayout(ied, (UINT)std::size(ied),
+	FUNC_ASSERT(pDevice->CreateInputLayout(ied, (UINT)std::size(ied),
 		pBlob->GetBufferPointer(),
 		pBlob->GetBufferSize(),
 		&pInLay
-	);
+	));
 
 	pContext->IASetInputLayout(pInLay.Get());
 
@@ -514,46 +537,38 @@ void Graphics::Drawtest(void) {
 //Cringe function but has to be done
 void Graphics::AdjustSwapChainBufferSizes() noexcept {
 
-
-
+	//essentially get rid of everything related to the target
 	pContext->OMSetRenderTargets(0, 0, 0);
 	pTarget->Release();
 	pDSV.Reset();
 
-
-	pSwap->ResizeBuffers(0, *vpData.width, *vpData.height, DXGI_FORMAT_UNKNOWN, 0);
-
+	//make the target have the same dimentions as my window
+	FUNC_ASSERT(pSwap->ResizeBuffers(0, *vpData.width, *vpData.height, DXGI_FORMAT_UNKNOWN, 0));
+	//comptr was breaking so this will have to do
 	ID3D11Texture2D* pBuff = NULL;
-
-	pSwap->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBuff);
-
-	if (pBuff == NULL) {
-		exit(69);
-	}
-	pDevice->CreateRenderTargetView(pBuff, 0, pTarget.GetAddressOf());
-
-
+	//get the back buffer
+	FUNC_ASSERT(pSwap->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBuff));
+	assert(pBuff != NULL);
+	//create new target
+	FUNC_ASSERT(pDevice->CreateRenderTargetView(pBuff, 0, pTarget.GetAddressOf()));
+	//release temp buffer
 	pBuff->Release();
 
 
-	
+	//recreate the DSV as it all gets lost
+	//why havnt they created a function for this?????????
 	D3D11_TEXTURE2D_DESC depthStencilDesc = {};
 	pDepthStencil->GetDesc(&depthStencilDesc);
+	//pointers to the width and height off the window
 	depthStencilDesc.Width = *vpData.width;
 	depthStencilDesc.Height = *vpData.height;
-
-	
-	pDevice->CreateTexture2D(&depthStencilDesc, nullptr, &pDepthStencil);
-
-	
+	//same as in class constructor
+	FUNC_ASSERT(pDevice->CreateTexture2D(&depthStencilDesc, nullptr, &pDepthStencil));
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
 	depthStencilViewDesc.Format = depthStencilDesc.Format;
 	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	depthStencilViewDesc.Texture2D.MipSlice = 0;
-	pDevice->CreateDepthStencilView(pDepthStencil.Get(), &depthStencilViewDesc, &pDSV);
-
-
-	//pContext->OMSetRenderTargets(1, pTarget.GetAddressOf(), pDSV.Get());
+	FUNC_ASSERT(pDevice->CreateDepthStencilView(pDepthStencil.Get(), &depthStencilViewDesc, &pDSV));
 }
 
 

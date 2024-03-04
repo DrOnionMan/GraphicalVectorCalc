@@ -7,30 +7,6 @@
 #include<vector>
 
 
-/*
-class Argand  {
-
-	
-private:
-	struct State {
-		ArgandConfig::UserInput UserChoice;
-		HWND ParentWindow;
-		ArgandConfig::UserInputType InputType;
-	};
-public:
-	Argand(HWND ParentWnd, ArgandConfig::UserInputType inputType) noexcept;
-	~Argand() noexcept;
-
-
-	void SetInputType(ArgandConfig::UserInputType type);
-	void SetUserChoice(int choice);
-	void SetupDraw();
-	void SetupConverter(std::vector<HWND> *children);
-	void SetTitle(const std::string& name, HWND hWnd);
-
-	State m_State;
-};
-*/
 
 namespace Argand {
 
@@ -52,7 +28,7 @@ namespace Argand {
 }
 
 namespace Mats {
-	void SetupMats(HWND Parent, std::vector<children>* __restrict children);
+	void SetupMats(HWND Parent, std::vector<children> * __restrict children);
 }
 
 

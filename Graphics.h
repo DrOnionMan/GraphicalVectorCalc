@@ -6,10 +6,7 @@
 #include"StringUtils.h"
 #include"LinkedList.h"
 #include"MKMath.h"
-
 #include"DebugDX.h"
-
-
 #include<directxMath.h>
 
 
@@ -53,9 +50,6 @@ public:
 	f32 Arg_H;
 	f32 Arg_V;
 	UINT SF;
-
-
-private:
 public:
 
 

@@ -4,8 +4,10 @@
 #include<bitset>
 
 class Keyboard {
+	//so gfx can get the priv stuff
 	friend class gfxWindow;
 public:
+	//event singleton
 	class Event {
 	public: enum class Type {
 		Press, Release, Invalid
@@ -54,7 +56,8 @@ public:
 	void DisableAutorepeat() noexcept;
 	bool AutoRepeatIsEnabled() const  noexcept;
 private:
-	//functions used by window
+	//functions used by window class
+	//just register the messages
 	void OnKeyPressed(unsigned char keycode) noexcept;
 	void OnKeyReleased(unsigned char keycode) noexcept;
 	void OnChar(char character) noexcept;

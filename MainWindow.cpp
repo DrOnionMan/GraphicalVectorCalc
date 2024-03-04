@@ -5,52 +5,60 @@
 #include"Logger.h"
 #include<ranges>
 
+
+//singleton to handle window class cleanup and destruction
 Window::MainWindowClass Window::MainWindowClass::wndClass;
-
-
-
-
 
 Window::MainWindowClass::MainWindowClass() noexcept
 	: hInst(GetModuleHandle(nullptr)) {
 	WNDCLASSEX wc = { 0 };
+	//register window class
 	wc.cbSize = sizeof(wc);
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hCursor = nullptr;
 	wc.hIcon = nullptr;
 	wc.lpszMenuName = nullptr;
+	//Clears window and draws every frame
 	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
 	wc.hInstance = GetInstance();
 	wc.lpszClassName = GetName();
 	wc.style = CS_OWNDC;
 	wc.hIconSm = nullptr;
+	//class member in window
 	wc.lpfnWndProc = HandleMsgSetup;
 	RegisterClassEx(&wc);
 }
 Window::MainWindowClass::~MainWindowClass() {
+	//Unregister o class distruction
 	UnregisterClass(wndClassName, GetInstance());
 }
 const char* Window::MainWindowClass::GetName() noexcept {
+	//getter
 	return wndClassName;
 }
 HINSTANCE Window::MainWindowClass::GetInstance() noexcept {
+	//getter
 	return wndClass.hInst;
 }
 
 
 #include"Logger.h"
 
-Window::Window(int width, int height, const char* name)
+Window::Window(int width, int height, const char* name) noexcept
 	:
+	//initialising class members, all pointers initialised to nullptr
 	width(width), height(height), hWnd(CreateWindow(
 		MainWindowClass::GetName(), name, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
 		CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr,
 		MainWindowClass::GetInstance(), this
-	)), pMenus(nullptr), GraphicsIsAlive(false), gwin(nullptr)
+	)), pMenus(nullptr), 
+	//boolian to say if graphics window should be rendered
+	GraphicsIsAlive(false),
+	//pointer to graphics window
+	gwin(nullptr)
 {
 	
-		
 
 	//Creates window
 	//param 1 predefined class name from singleton
@@ -61,10 +69,6 @@ Window::Window(int width, int height, const char* name)
 	//param 8&9 ignore
 	//param 10 instance found from predefined getinstance function in singleton
 	//param 11 pointer to our window instance
-	
-	
-	
-	
 	
 
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
@@ -79,24 +83,26 @@ Window::~Window() {
 }
 
 
+
+
+
+
 //Legacy function not usegul anymore
-void Window::SetTitle(const std::string& Title) {
+void Window::SetTitle(const std::string& Title) noexcept {
 	SetWindowText(hWnd, Title.c_str());
 }
 
 
 LRESULT WINAPI Window::HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept {
-
-
-	
+	//check for nccreate message
 	if (msg == WM_NCCREATE) {
 		
 		const CREATESTRUCTW* const pCreate = reinterpret_cast<CREATESTRUCTW*>(lParam);
-		
+
 		Window* const pWnd = static_cast<Window*>(pCreate->lpCreateParams);
 
 		pWnd->pMenus = new Menus(hWnd);
-
+		
 		//set Winapi managed user data to store ptr to window class
 		//We can set some userdata accociated with a particular window
 		//we want to store a pointer to our window class on the winapi side
@@ -106,7 +112,7 @@ LRESULT WINAPI Window::HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 		//now we have installed ptr j window we want to use a different message proc
 
 		SetWindowLongPtr(hWnd, GWLP_WNDPROC , reinterpret_cast<LONG_PTR>(&Window::InvokeMemberFunc));
-
+		//return class member
 		return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 	}
 
@@ -118,12 +124,11 @@ LRESULT WINAPI Window::InvokeMemberFunc(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 	//retreve pointer to window class
 	Window* const pWnd = reinterpret_cast<Window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 	//Forward message to class handler
-	
 	return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 }
 
 
-
+//class message handler below
 LRESULT WINAPI Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept{
 	
 	
@@ -133,6 +138,7 @@ LRESULT WINAPI Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 		return 0;
 	case WM_CREATE:
 	{
+		//on create set menus with menus class pointer.
 		pMenus->setMenus();
 		
 		break;
@@ -227,18 +233,17 @@ void Window::MakeKey(bool is3D) noexcept{
 	}
 }
 
-
+#include"DebugDX.h"
 
 typedef uint64_t ui64;
-void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
+void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) noexcept {
 	
-
-
 	
 	switch (wParam) {
 		//Argand Diagram Shiz
 	case ADD_COMPLEX_GEOMETRY:
 		if (!BufferFull()) {
+			//adds a text box to window using emplace edit function
 			Argand::AddGeometryBox(hWnd, &childWindowBuff);
 		}
 		else {
@@ -246,11 +251,16 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 		}
 		break;
 	case DRAW_ARGAND_DIAGRAM:
+		//Clear residual stuff from screen
 		ClearChildWindowBuffer();
+		//check buffer is not full
 		if (!BufferFull()) {
+			//Call setup draw function passing in my window handle 
+			//and a pointer to my std::vector of child windows as defined in Header file
 			Argand::SetupDraw(hWnd, &childWindowBuff);
 		}
 		else {
+			//Called when buffer is full
 			WarningBuffOverflow();
 		}
 
@@ -258,6 +268,7 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 	case GET_DIFF_FORM_ARGAND:
 		ClearChildWindowBuffer();
 		if (!BufferFull()){ 
+			//Sets up the converter pretty self explanitory
 			Argand::SetupConverter(hWnd, &childWindowBuff);
 		}
 		else {
@@ -266,8 +277,12 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 		break;
 	case CONVERT:
 		if (!BufferFull()) { 
+			//set the prser text to the edit on the window
+			//NOPROC flag is a legacy thing and a result of poor planning on my part, ignore it and any reference
+			//to procstring function found in class parser.
 			parser.setParserText(Argand::GetStringFromEdit(GetChild(first, &childWindowBuff, EDIT)), NOPROC);
 			complex c = parser.ParsetoComplex();
+			//display result
 			Argand::DisplayConverterResult(c, &childWindowBuff, hWnd);
 			return;
 		}
@@ -277,7 +292,6 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 		break;
 	case BN_CLICKED:
 	{
-
 		for (int i = 0; i < BufflenMax; i++) {
 			if (childWindowBuff.at(i).type == EDIT) {
 				if (childWindowBuff.at(i).associate->id == (HWND)lParam) {
@@ -292,42 +306,56 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 	}break;
 	case DRAW_ARGAND:
 	{
+		//if win is running dont let the user click draw again, obviously...
 		if (GraphicsIsAlive) {
 			return;
 		}
+		//assign empty geomdata
 		GeomData gData = { 0 };
-		
+		//foreach 
 		for (children c : childWindowBuff) {
+			//if window is a textbox
 			if (c.type == EDIT) {
+				//retrieve geometry data from the user input
 				gData = parser.ProcExprStrToGeom(Argand::GetStringFromEdit(&c));
-				if (!gData) {
+				//OVERLOAD
+				if (!gData || gData.gType == MAT) {
+					//if the input is invalid delete the linked list to prevent memory leak.
 					DeleteList(head);
+					//Parser gives more detail on errors that occured
 					return;
 				}
 				for (node* currentnode = head; currentnode != NULL; currentnode = currentnode->next) {
+					//check if 2 Geoms have the same name
 					if (currentnode->data.name == gData.name) {
+						// if they do delete list & goto error handler
 						DeleteList(head);
-						ERR("Input Error", "Each geometry must have a unique identifier");
-						return;
+						//goto to handle errors :) Cursed IK
+						//got flamed for doing this in r/C++
+						goto IN_ERROR;
 					}
 				}
+				//OVERLOAD - add the gData to my linked list.
 				head += gData;
-				
 			}
 		}
-
+		//Is my linked list still NULL??
 		if (!head) {
-			ERR("Argument Error", "No geometry arguments provided.");
-			return;
+			goto IN_ERROR;
 		}
+		//sort them out!!!!!!!!!!!
+		//puts them in draw order based on enum.
 		quicksort_c(head, last_node(head), lessthan);
 
+		//makes the key, not 3d hence false
 		MakeKey(false);
-		
+		//make that window :)))
 		gwin = new gfxWindow(900, 600, "Graphics Window", { &GraphicsIsAlive, false }, head);
+		//Yes i want to run my graphics!!!!!!!
 		GraphicsIsAlive = true;
-		
-		
+		return;
+	IN_ERROR:
+		ERR("Input Error", "Invalid geometry input in entry field(s)\nBreaking...");
 	}break;
 	case DRAW_MATRICIES_SETUP: {
 		ClearChildWindowBuffer();
@@ -347,7 +375,7 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 		for (children c : childWindowBuff) {
 			if (c.type == EDIT) {
 				gData = parser.ProcExprStrToGeom(Argand::GetStringFromEdit(&c));
-				if (!gData) {
+				if (!gData || gData.gType != GeomType::MAT) {
 					DeleteList(head);
 					return;
 				}
@@ -359,19 +387,17 @@ void Window::PollMyEvents(WPARAM wParam, LPARAM lParam) {
 			ERR("Argument Error", "No geometry arguments provided.");
 			return;
 		}
+		//makekey true as is 3d
 		MakeKey(true);
-
+		//create window
 		gwin = new gfxWindow(900, 600, "Graphics Window", { &GraphicsIsAlive, true }, head);
 		GraphicsIsAlive = true;
-		
-
-
 		
 	}break;
 	}
 }
 
-std::optional<int> Window::ProcessMessage(){
+std::optional<int> Window::ProcessMessage() noexcept {
 	MSG msg;
 	//peek so render loop not interrupted, not useful on this window but its not a detriment either.
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -381,11 +407,10 @@ std::optional<int> Window::ProcessMessage(){
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-	
 	return {};
 }
 
-void Window::ClearChildWindowBuffer() {
+void Window::ClearChildWindowBuffer() noexcept {
 	if (childWindowBuff.size() == 0) return;
 	//love a little bit of the C++ STL
 	//trivial find and delete pretty self explanitory
@@ -399,7 +424,7 @@ void Window::ClearChildWindowBuffer() {
 	childWindowBuff = {};
 }
 
-void Window::TrimBuffer() {
+void Window::TrimBuffer() noexcept {
 	int i = childWindowBuff.size() - 1;
 	while (childWindowBuff.size() > BufflenMax) {
 		//MB("TrimBuffer called");
@@ -410,14 +435,15 @@ void Window::TrimBuffer() {
 
 }
 
-void Window::WarningBuffOverflow() {
+void Window::WarningBuffOverflow() noexcept {
 	if (BufferFull()) {
+		//warn the user if they add too many text boxes!
 		MessageBox(nullptr, "Window Buffer Limit Reached\n\nToo Many Inputs Created", "WARNING", MB_ICONWARNING);
 		TrimBuffer();
 	}
 }
 
-bool Window::BufferFull() const{
+bool Window::BufferFull() const noexcept {
 	int count = 0;
 	for (const auto& c : childWindowBuff) {
 		if (c.type == EDIT) {
@@ -427,7 +453,6 @@ bool Window::BufferFull() const{
 	if (count == 5) {
 		return true;
 	}
-
 	return childWindowBuff.size() < BufflenMax ? false : true;
 }
 

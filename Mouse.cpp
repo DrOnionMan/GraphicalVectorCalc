@@ -142,7 +142,7 @@ void Mouse::OnMButtonReleased(int x, int y) noexcept {
 	TrimBuffer();
 }
 
-
+//i wonder what this might do
 void Mouse::TrimBuffer() noexcept {
 	while (buffer.size() > bufferSize) {
 		buffer.pop();

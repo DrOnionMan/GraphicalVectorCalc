@@ -26,15 +26,13 @@ float Timer::Peek() const {
 
 App::App() : wnd(800, 600, "MainWnd") {}
 
+//just a divisor to stop the I & O clicks being read 10000000 times
 static inline unsigned long long i = 0;
-
 void App::DoFrame() {
-	
-
-	wnd.gwin->GFX().ClearBuffer(0.0f, 0.0f, 0.0f);
+	wnd.gwin->GFX().ClearBuffer(0.0f, 0.0f, 0.0f);//clear the buffers
 	static bool wasPressed = false;
-	
 	if (wnd.gwin->GFX()._Dim) {
+		//only do it if its 3d
 		if (wnd.gwin->kbd.KeyIsPressed('A')) {
 			wnd.gwin->GFX().Arg_H += 0.1f;
 		}
@@ -47,27 +45,19 @@ void App::DoFrame() {
 		if (wnd.gwin->kbd.KeyIsPressed('S')) {
 			wnd.gwin->GFX().Arg_V -= 0.1f;
 		}
-
-		
+		//these were not planned
 		if (wnd.gwin->kbd.KeyIsPressed('O') && !wasPressed) {
 			if (wnd.gwin->GFX().SF > 0u) {
 				wasPressed = true;
-				
 				wnd.gwin->GFX().SF -= 1u;
-				
 			}
 		}
-
 		if (wnd.gwin->kbd.KeyIsPressed('I') && !wasPressed) {
 			if (wnd.gwin->GFX().SF < 11u) {
 				wasPressed = true;
-				
 				wnd.gwin->GFX().SF += 1u;
-				
 			}
 		}
-		
-		
 		//ensure it is within the near and far viewing plane
 		const auto& a = wnd.gwin->mouse.Read();
 		if (a.GetType() == Mouse::Event::Type::WheelUp) {
@@ -78,18 +68,14 @@ void App::DoFrame() {
 			if (wnd.gwin->GFX().DTS < -1.5f)
 			wnd.gwin->GFX().DTS += 0.25f;
 		}
-		
 	}
-	
 	if (i % 35 == 0) {
+		//acts as a makeshift timer
 		wasPressed = false;
-		//MB("happened");
 	}
-
-
-	i++;
-	wnd.gwin->GFX().Render();
-	wnd.gwin->GFX().EndFrame();
+	i++;//increment i
+	wnd.gwin->GFX().Render();//draw the scene
+	wnd.gwin->GFX().EndFrame();//swap the buffers
 }
 
 int App::Run() {

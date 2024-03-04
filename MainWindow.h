@@ -36,13 +36,13 @@ private:
 	
 
 public:
-	Window(int width, int height, const char* name);
-	~Window();
+	Window(int width, int height, const char* name) noexcept;
+	~Window() noexcept;
 	Window(const Window&) = delete;
 	Window& operator=(const Window&) = delete;
-	void SetTitle(const std::string& Title);
-	static std::optional<int> ProcessMessage();
-	bool DoCreateGraphics();
+	void SetTitle(const std::string& Title) noexcept;
+	static std::optional<int> ProcessMessage() noexcept;
+	
 	
 	
 private:
@@ -50,13 +50,13 @@ private:
 	static LRESULT CALLBACK InvokeMemberFunc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 	
 	LRESULT HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
-	void PollMyEvents(WPARAM wParam, LPARAM lParam);
-	bool BufferFull()const;
-	void ClearChildWindowBuffer();
-	void WarningBuffOverflow();
-	void TrimBuffer();
+	void PollMyEvents(WPARAM wParam, LPARAM lParam) noexcept;
+	bool BufferFull() const noexcept;
+	void ClearChildWindowBuffer() noexcept;
+	void WarningBuffOverflow() noexcept;
+	void TrimBuffer() noexcept;
 
-	void MakeKey(bool is3D)noexcept;
+	void MakeKey(bool is3D) noexcept;
 	
 
 

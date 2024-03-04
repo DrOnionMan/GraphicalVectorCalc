@@ -45,38 +45,46 @@ void Argand::SetupConverter(HWND Parent, std::vector<children>*__restrict Childr
 }
 
 char* Argand::GetStringFromEdit(children* Children) {
-
-	if (Children == nullptr) {
+	if (Children == nullptr || Children->type != EDIT) {
+		//if the window is nullptr break ofc!!!
+		//same for if its not an edit
 		return nullptr;
 	}
-	if (Children->type != EDIT) {
-		return nullptr;
-	}
-
-	char* text = (char*)malloc(sizeof(char)*MAX_LEN);
+	//allocate the buffer
+	char* text = allocstr(MAX_LEN);
 	if (text) {
-		memset(text, '\0', sizeof(char) * MAX_LEN);
+		//fill the buffer
+		//annoying that it tells you the size of the buffer after youve allocated the string!!
+		//would be nice to know that before
 		GetWindowText(Children->id, text, MAX_LEN);
-
+		//return the contents of the edit
 		return text;
 	}
-
-
+	//if the buffer is a nullptr return nullptr OFC!
 	return nullptr;
 }
 
-void Argand::SetupDraw(HWND Parent, std::vector<children>*__restrict Children) {
+void Argand::SetupDraw(HWND Parent, std::vector<children>* __restrict Children) {
+	//create child windows.
 	children draw_btn = { NULL };
 	draw_btn.type = BUTTON;
+	//create button.
 	draw_btn.id = CreateWindow("Button",
 		"Draw",
 		WS_VISIBLE | WS_CHILD | WS_BORDER,
 		650, 150, 75, 30,
+		//odd cast to HMENU Needed but i not sure why
+		//What message is sent when button is pressed
+		//      *                *        
 		Parent, (HMENU)DRAW_ARGAND, NULL, NULL
 	);
+	//no associate window so set to nullptr
 	draw_btn.associate = nullptr;
+	//add to window buffer
 	Children->push_back(draw_btn);
 
+
+	//asme as above
 	children AddGeom_btn = { NULL };
 	AddGeom_btn.type = BUTTON;
 	AddGeom_btn.id = CreateWindow("Button",
@@ -160,66 +168,61 @@ children* CreateDeleteButton(HWND Parent,HWND associate, std::vector<children>*_
 
 
 
-static void GetChildRect(RECT* rect, HWND& hWnd) {
+static void GetChildRect(RECT* rect, const HWND& hWnd) {
 	GetWindowRect(hWnd, rect);
 	MapWindowPoints(HWND_DESKTOP, GetParent(hWnd), (LPPOINT)rect, 2);
 }
 
 
-
-
-
-
-
 RECT Argand::EmplaceEdit(std::vector<children> * __restrict Children) {
+	//Pretty self explanitory here gets all the edits from my buffer
 	std::vector<children> Edits = GetAllChildren(Children, EDIT);
+	//if the buffsize is 0 (no edits on window return the top most rect)
 	if (Edits.size() == 0) {
-
 		RECT rect = { NULL };
 		rect.left = 50;
 		rect.top = 50;
 		return { rect };
 	}
 
+	//Get rects of all edits
 	std::vector<RECT> rects;
-	for (int i = 0; i < Edits.size(); i++) {
+	//simple foreach
+	for (const auto& edit : Edits) {
 		RECT rect = { NULL };
-		GetChildRect(&rect, Edits.at(i).id);
-
+		//use of getchildrect
+		GetChildRect(&rect, edit.id);
 		rects.push_back(rect);
 	}
 	
-	
+	//lambda expression no capture group defined
 	const auto LT = [](const RECT& a, const RECT& b) {
+		//return true if a is lower than b
 		return a.bottom < b.bottom ? true : false;
 	};
+	//use of std::sort
 	std::sort(rects.begin(), rects.end(), LT);
-
-	
-	
-	if (rects.at(0).bottom != 50) {
+	//if the top most found rect is not equal to the top most possible rect then return 
+	//coords of top most possible rect
+	if ((*rects.begin()).bottom != 50) {
 		RECT rect = { NULL };
 		rect.left = 50;
 		rect.top = 50;
 		return { rect };
 	}
+	//If buff is greater than 2
 	if (rects.size() >= 2) {
 		for (int i = 0; i < rects.size() - 1; i++) {
-			
-
 			if (rects.at(i).bottom == 0) {
 				continue;
 			}
-			if (rects.at(i).bottom + 50 != rects.at(i+1).bottom) {
-				
+			//return rect of first gap found in rect list
+			if (rects.at(i).bottom + 50 != rects.at(i + 1).bottom) {
 				return rects.at(i);
 			}
-			
-				
-			
-			
+
 		}
-	}
+	}//Botttom 2 cover edge cases
 	if (rects.size() == 1) {
 		return rects.at(0);
 	}
@@ -232,16 +235,22 @@ RECT Argand::EmplaceEdit(std::vector<children> * __restrict Children) {
 void Argand::AddGeometryBox(HWND Parent, std::vector<children>* __restrict Children) {
 	int i = Children->size();
 	
+
+	//emplace edit function
 	RECT rect = EmplaceEdit(Children);
 	
 	children EditBox = { NULL };
 	EditBox.type = EDIT;
 	EditBox.id = CreateWindow("Edit",
 		"",
+		//ES_AUTOSCROLL so that it will scroll horezonatlly
+		//for large input strings
 		WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
+		//add 20 pixel padding between the edits
 		rect.left, rect.bottom + 20, 350, 30,
 		Parent, (HMENU)ADD_COMPLEX_GEOMETRY, NULL, NULL
 	);
+	//Adds a delete button
 	EditBox.associate = CreateDeleteButton(Parent, EditBox.id, Children, 0, &rect);
 	Children->push_back(EditBox);
 	return;

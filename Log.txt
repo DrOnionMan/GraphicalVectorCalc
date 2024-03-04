@@ -1,1 +1,55 @@
 
+Geometry ID -> z
+Complex Number argument -> 1
+Complex Number magnitude -> 1
+-------------------
+SW -> 916
+
+-------------------
+SH -> 639
+Meter values: 
+0.333333
+0.5
+screen measurements: 
+900
+600
+Should not be 0:
+2
+Should be 1:
+1
+Should be 2/3
+0.666667
+
+
+
+Axis width:2
+Contained meters:6
+Think they should be the same:4
+Vertex at index 0
+
+position :
+0.666667 , 0 , 0 , 1
+Colour:
+ , 0 , 255 , 0 , 0
+
+Vertex at index 1
+
+position :
+-0.666667 , 0 , 0 , 1
+Colour:
+ , 0 , 255 , 0 , 0
+
+Vertex at index 2
+
+position :
+0 , 1 , 0 , 1
+Colour:
+ , 0 , 255 , 0 , 0
+
+Vertex at index 3
+
+position :
+0 , -1 , 0 , 1
+Colour:
+ , 0 , 255 , 0 , 0
+

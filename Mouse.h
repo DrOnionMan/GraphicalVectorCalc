@@ -5,6 +5,7 @@
 class Mouse {
 	friend class gfxWindow;
 public:
+	//pretty beefy singleton
 	class Event {
 	public: enum class Type {
 		LPress,
@@ -76,6 +77,7 @@ public:
 	std::pair<int, int> GetPos() const noexcept;
 	int GetPosX() const noexcept;
 	int GetPosY() const noexcept;
+	//event funcs to be called from App.cpp
 	bool IsInWindow() const noexcept;
 	bool RightIsPressed() const noexcept;
 	bool LeftIsPressed() const noexcept;
@@ -86,6 +88,7 @@ public:
 	}
 	void Flush() noexcept;
 private:
+	//mouse event register things
 	void OnMouseLeave() noexcept;
 	void OnMouseEnter() noexcept;
 	void OnMButtonDown(int x, int y) noexcept;

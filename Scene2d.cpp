@@ -26,16 +26,15 @@ namespace wrl = Microsoft::WRL;
 
 
 static void genIndexBufferTriangle(UINT* ind, UINT vertexCount, UINT& indexCount) {
-
-
+	//start offset
 	const UINT first = indexCount;
 #ifndef NDEBUG
 	assert(ind != NULL);
 #endif
+	//same as pseudocode
 	ind[indexCount] = first;
 	ind[++indexCount] = first + 2;
 	ind[++indexCount] = first + 1;
-	
 	for (UINT i = first + 3, j = first + 2; i < vertexCount; i++, j++) {
 		ind[++indexCount] = first;
 		
@@ -50,6 +49,8 @@ static void genIndexBufferTriangle(UINT* ind, UINT vertexCount, UINT& indexCount
 }
 
 
+//for the gen circle 
+//pretty ez no explanation needed
 class flt {
 public:
 	float step;
@@ -70,19 +71,25 @@ bool operator<(flt& i, double x) {
 
 void Scene2d::genVertexBufferCircle(MKMaths::vertex* buffer, MKMaths::color& col, f32 radius, int steps) {
 	using namespace MKMaths;
+	//set index 1 to <0, 0>
+	//this func can be used for a variable amount of precision
+	//360 however is a good enough approximation
 	buffer[0] = { 0.0f, 0.0f, 0.0f, 1.0f, col };
-	double period = 360.0;
+	constexpr double period = 360.0;
 	static int count;
 	int j;
 	flt i;
-
+	//for loop over 0 -> steps (360 in the usecase)
 	for (count = 0, j = 1, i = { 360.0f / (float)steps, 0 }; j < steps; j++, ++i, count++) {
+		//get the points of the circle
 		f32 s = cos(RAD(i.x));
 		f32 p = sin(RAD(i.x));
-
+		//set them to the scale factor perspective shift * the x and y
 		buffer[j] = { (meters.x * radius * cos(RAD(i.x))) ,   (meters.y * radius * sin(RAD(i.x))) , 0.0f, 1.0f, col };
 	}
 #ifndef NDEBUG 
+	//logging only once as is in loop
+	//not included in realese
 	static bool w = false;
 	if (w == false) {
 		Log l;
@@ -94,7 +101,6 @@ void Scene2d::genVertexBufferCircle(MKMaths::vertex* buffer, MKMaths::color& col
 		w = true;
 	}
 #endif
-
 }
 
 static bool lessthan(node* left, node* right) {
@@ -168,8 +174,9 @@ void Scene2d::DrawCNum(GeomData& g, MKMaths::color& c) {
 
 
 	gfx->Draw(2, dpt::D3D11_PRIMITIVE_TOPOLOGY_LINELIST, { L"VS_WTrans.cso", L"GeneralPS.cso" });
-
-
+	//OVERLOAD
+	//clear matrix / memset to 0.0f
+	//confusing overload lmao
 	~mat;
 
 
@@ -294,29 +301,32 @@ Scene2d::~Scene2d() {
 
 }
 
+//gets meter value
 void Scene2d::DefineTheMeter() {
+	//set both as 1 by default
 	f32 ar_x = 1.0f, ar_y = 1.0f;
-
+	//gets the spect ratio of the window
 	f32 _sw = *this->sw - 16.0f;
 	f32 _sh = *this->sh - 39.0f;
-
+	//simple ternary
 	_sw > _sh ? ar_x = _sh / _sw : ar_y = _sw / _sh;
-
+	//set meter values to these new calculated values
+	//1 SHOULD ALWAYS BE = 1.0F
 	meters.aRx = ar_x;
 	meters.aRy = ar_y;
-
 	f32 axw = 0.0f;
-
+	//get the axiswidth using the calculated max point
 	MaxPoint.first > MaxPoint.second ?
 		axw = (2.0f * MaxPoint.first)
 		:
 		axw = (2.0f * MaxPoint.second);
-
+	//axis wisth needs to be an int ofc
 	meters.axiswidth = round(axw);
+	//get meter values for x and y
 	meters.x = (1.0f / meters.axiswidth) * ar_x;
-
 	meters.y = (1.0f / meters.axiswidth) * ar_y;
 
+	//logging stuff
 #ifndef NDEBUG
 	static int written = false;
 	if (!written) {
@@ -346,7 +356,7 @@ void Scene2d::DefineTheMeter() {
 
 void Scene2d::GetMeterSize() {
 	MaxPoint = { 0,0 };
-
+	//finds max point
 	for (node* p = list; p != NULL; p = p->next) {
 		PAIR m = { 0,0 };
 		switch (p->data.gType) {
@@ -437,9 +447,8 @@ void Scene2d::DrawAxis() {
 	
 #endif
 
-
 	//accounts for +ve x and y aswell as -ve x and y
-
+	//dynamic alloc coz idk how big they need to be
 	UINT numsections = (((UINT)axw) * 2 * 8);
 	vertex* whiteaxis_y = new vertex[numsections];
 	UINT* indbuff = (UINT*)malloc(sizeof(vertex) * numsections);
@@ -448,7 +457,7 @@ void Scene2d::DrawAxis() {
 	assert(whiteaxis_x != NULL && whiteaxis_y != NULL && indbuff != NULL);
 
 
-
+	//get all the axis pooints in the bound meters
 	for (int i = 1, index = 0; i <= axw; index += 4, i++) {
 
 		whiteaxis_y[index] = { axw * (i / axw) * meters.x, axw * meters.y, 0.0f, 1.0f, 255, 255, 255, 0 };
@@ -526,46 +535,33 @@ void Scene2d::DrawAxis3D(void) noexcept {
 	
 }
 
-//remove both
-
-/*
-1x+1y+1z=69
-*/
 
 #define deg(x) ((int) (x * (180.0f/M_PI)))
 
 
 static MKMaths::Mat4 GetPlnTransform(MKMaths::plane& pln, UINT SF) {
 	using namespace MKMaths;
+	//get the normal in polar coords
 	polar p = toPolar(pln);
-
 	//PrintNums<int>(2, deg(p.theta), deg(p.phi));
-
+	//all the sacle factors
 	static std::vector<f32> ScaleFct = { 1.0f, 5.0f, 7.5f, 10.0f, 15.0f, 25.0f, 50.0f, 100.0f, 250.0f, 500.0f, 750.0f, 1000.0f };
-
-
+	//local struct
 	struct vec3 {
 		f32 x, y, z;
 	};
-
-
-	
-
+	//getting lambda
 	const f32 lambda = (pln.d / ((pln.a * pln.a) + (pln.b * pln.b) + (pln.c * pln.c))) * (1.0f / ScaleFct.at(SF));
 	//multiplied by scale factor to ensure translaton is within bounds 1.0f -> -1.0f
-	
+	//get the translation
 	const vec3 cP = { lambda * pln.a , lambda * pln.b, lambda * pln.c };
-
-
-
+	//combine the rotations
 	Mat4 ret = Mat4::Rotate3D_z_t(-p.theta) * Mat4::Rotate3D_y_t(p.phi);
-
-
+	//OVERLOAD
+	//has to be transposed for some reason idk why
 	!ret;
-
+	//get final transform
 	Mat4 f = ret * Mat4::Translate_t(cP.x, cP.y, cP.z);
-
-	
 	return f;
 }
 

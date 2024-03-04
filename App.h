@@ -1,15 +1,12 @@
 #pragma once
 
-
-
 #include"MainWindow.h"
 #include"GfxWindow.h"
 
-
-
 #include<chrono>
 
-
+//just was used for measuring ms per frame
+//no longer used
 class Timer {
 public:
 	Timer();

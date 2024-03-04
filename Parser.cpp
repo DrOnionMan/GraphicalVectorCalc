@@ -9,18 +9,18 @@
 
 void Parser::setParserText(char* text, unsigned int flag) {
 	if (!text) {
-		MB("NULLPTR ERROR IN PARSER");
+		ERR("UNDEFINED ERROR", "NULLPTR ERROR IN PARSER");
 		return;
 	}
 	if (!currentString) {
 		currentString = text;
-		if(!(flag & NOSAN))SanitiseInput();
+		if(!(flag & NOSAN)) SanitiseInput();
 		endindex = strlen(currentString);
 	}
 	else {
 		free(currentString);
 		currentString = text;
-		if (!(flag & NOSAN))SanitiseInput();
+		if (!(flag & NOSAN)) SanitiseInput();
 		endindex = strlen(currentString);
 	}
 	if (flag == PROC) {
@@ -34,49 +34,57 @@ Parser::Parser() {
 	currentString = nullptr;
 
 	endindex = MAX_LEN;
-	backbone = 0;
-	cursor = 0;
 
 }
 
 Parser::~Parser() {
+	if(currentString)
 	free(currentString);
 }
 
 complex Parser::ParsetoComplex() {
-	
-
+	//Finds the index of the token * and token ^ in the string
+	//makes sure the e is there aswell however, splits the string into 2 float values
+	//If the token isnt found retunrd pair is {-1, -1}
 	std::pair<int, int> x = FindToken("*E^");
 	
-
+	//Check to see if the above func failed
 	if (x.first < 0) {
+		//throw error message in a text box
 		std::ostringstream oss;
 		oss << "Token unfound\nExpected token -> " << "*e^";
 		std::string s = oss.str();
-
 		ERR("Parse Error", s.c_str());
+		//return NULL struct
 		return { NULL };
 	}
-
+	//else we get the numbers
+	//as in the form r*e^argi
+	//mag = r hence the string is index 0 to where the * token is
+	//same for the arg value only start index is the ^
 	char* mag = GetToken(0, x.first);
 	char* exp = GetToken(x.second , endindex);
-
-
+	//if either is a nullpointer free both and return null
 	if (!mag || !exp) {
 		free(mag);
 		free(exp);
 		return { NULL };
 	}
-
+	//Checks to see if the string is valid checks for unexpected tokens
+	//eg as it is a number no characters (a, b, c, d..) should be present
+	//only 1 . etc
 	if (!StringIsValid(mag, false)) {
+		//Gets all the unexpected tokens and puts them in the buffer str
 		char* str = FindUnexpectedToken(mag, false);
+		//Displays all the unexpected values
 		ERR("Unexpected Tokens Found in magnitude value", str);
+		//ofc free all dynamically allocated buffers && return NULL
 		free(mag);
 		free(exp);
 		free(str);
 		return { NULL };
 	}
-
+	//see aboove
 	if (!StringIsValid(exp, true)) {
 		char* str = FindUnexpectedToken(exp, true);
 		ERR("Unexpected Tokens Found in exponent value", str);
@@ -85,19 +93,14 @@ complex Parser::ParsetoComplex() {
 		free(exp);
 		return {NULL};
 	}
-	
-	
-	
-	//Remove
-	
+	//create empty struct
 	complex c = { 0 };
-
-	
+	//Extract float values from the strings, just calls atoll function
 	c.magnitude = ExtractDecimal(mag);
 	c.argument = ExtractDecimal(exp);
-		
-	
-
+	//one last logic check
+	if (c.magnitude < 0.0f) return {NULL};
+	//return found Complex number
 	return c;
 }
 
@@ -262,8 +265,14 @@ float Parser::ExtractDecimal(char* buffer) {
 
 GeomData Parser::ParseCircle() const {
 	GeomData g = { 0 };
-	
+	//for details see ParseCnum
 	if (4 != sscanf_s(currentString, "|%c-(%f%fi)|=%f", &g.name, 1,  &g.data.circle.center_x, &g.data.circle.center_y, &g.data.circle.radius)) {
+		ERR("Syntax Error", "Invalid format for circle geometry");
+		g.gType = NULLTYPE;
+		return g;
+	}
+	//Radius cannot be negative, covers edge case.
+	if (g.data.circle.radius < 0.0f) {
 		ERR("Syntax Error", "Invalid format for circle geometry");
 		g.gType = NULLTYPE;
 		return g;
@@ -276,7 +285,7 @@ GeomData Parser::ParseCircle() const {
 
 GeomData Parser::ParseHLine() const {
 	GeomData g = { 0 };
-
+	//for details see ParseCnum
 	if (4 != sscanf_s(currentString, "Arg(%c-(%f%fi))=%f", &g.name, 1,&g.data.hline.xspos, &g.data.hline.yspos, &g.data.hline.arg)) {
 		
 		ERR("Syntax Error", "Invalid format for half-line geometry");
@@ -292,25 +301,42 @@ GeomData Parser::ParseHLine() const {
 
 GeomData Parser::ParseCnum() const {
 	GeomData g = { 0 };
-	
+	//if the things arnt scanned in / if there is an error
 	if (3 != sscanf_s(currentString, "%c=%f*e^%fi", &g.name, 1, &g.data.comp_num.mag, &g.data.comp_num.arg)) {
-		
 		ERR("Syntax Error", "Invalid format for complex number geometry");
 		g.gType = NULLTYPE;
 		return g;
 	}
-
+	//obviously the magnitude cant be less than 0 makes no sense
+	//cover this edge case.
+	if (g.data.comp_num.mag < 0.0f) {
+		//More detailed error notes
+		ERR("Syntax Error", "Invalid format for complex number geometry");
+		g.gType = NULLTYPE;
+		return g;
+	}
 	g.gType = CNUM;
-
+	//else we return g.
 	return g;
 }
 
 
 GeomData Parser::ProcExprStrToGeom(char* txt) {
 	GeomData g = { NULL };
-	
+	//set my text to the buffer passed in
+	//dont capitalise it
 	setParserText(txt, NOPROC | NOSAN);
+	//put the text buffer into a std::string
 	std::string expression = txt;
+	//if statements, if the substring is in the main string
+	//npos wont be returned and we can process them as we like.
+
+	//Formats for entry are
+	/*
+		<character>=<float>*e^<float>i
+		Arg(<character>-(<float><operator(+|-)><float>i))=<float>
+		|<character>-(<float><operator(+|-)><float>i)|=<float>
+	*/
 	if (expression.find("Arg") != std::string::npos) {
 		g = ParseHLine();
 		return g;
@@ -325,14 +351,16 @@ GeomData Parser::ProcExprStrToGeom(char* txt) {
 	}
 
 	float a = 0.0f, b = 0.0f, c = 0.0f, d = 0.0f;
-
+	//Matrix implementation. Just as bove
 	if (
 		4 == sscanf_s(txt,"%fx%fy%fz=%fd", &a, &b, &c, &d) 
 		|| 
 		3 == sscanf_s(txt, "0x%fy%fz=%fd", &b, &c, &d)
 		) {
 		
-		
+		if (b == 0.0f && c == 0.0f && a == 0.0f) {
+			goto Error;
+		}
 
 		g.data.mat.a = a;
 		g.data.mat.b = b;
@@ -345,9 +373,9 @@ GeomData Parser::ProcExprStrToGeom(char* txt) {
 		
 		return g;
 	}
-	
+
+Error:
 	g.gType = NULLTYPE;
-	ERR("Syntax Error", "Invalid expression");
 	return g;
 }
 

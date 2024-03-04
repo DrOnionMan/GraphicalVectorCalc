@@ -9,10 +9,11 @@ bool Keyboard::KeyIsPressed(unsigned char keycode) const noexcept {
 }
 
 Keyboard::Event Keyboard::ReadKey() noexcept {
-	//check if there is shit in the buffer first
+	//check if there is stuff in the buffer first
 	if (keyBuffer.size() > 0u) {
 		/*
-		Queue of events if there are events the event e = the first event in and this is then popped as we no longer need it
+		Queue of events if there are events the event e = the first event in and this is 
+		then popped as we no longer need it
 		*/
 		Keyboard::Event e = keyBuffer.front();
 		keyBuffer.pop();

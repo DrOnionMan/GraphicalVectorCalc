@@ -20,6 +20,7 @@ public:
 	Parser();
 	Parser(const Parser&) = delete;
 	Parser& operator=(const Parser&) = delete;
+
 	void setParserText(char* text, unsigned int flag);
 	~Parser();
 	complex ParsetoComplex();
@@ -42,7 +43,5 @@ private:
 private:
 	
 	char* currentString;
-	int cursor;
-	int backbone;
 	int endindex;
 };

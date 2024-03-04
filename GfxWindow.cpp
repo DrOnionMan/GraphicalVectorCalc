@@ -15,6 +15,7 @@ gfxWindow::gfxWindowClass::gfxWindowClass() noexcept
 	wc.hCursor = nullptr;
 	wc.hIcon = nullptr;
 	wc.lpszMenuName = nullptr;
+	//HAS TO BE NULL
 	wc.hbrBackground = NULL;
 	wc.hInstance = GetInstance();
 	wc.lpszClassName = GetName();
@@ -44,7 +45,8 @@ gfxWindow::gfxWindow(int width, int height, const char* name, std::pair<bool*, b
 	wr.top = 100;
 	wr.bottom = height + wr.top;
 	
-	//Here we use this pass in the style of the gfxWindow and a boolian to say if we have a menu (ofc we dont here hence false)
+	//Here we use this pass in the style of the gfxWindow and a boolian to say if we have a 
+	//menu (ofc we dont here hence false)
 	AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_MAXIMIZEBOX | WS_SIZEBOX, FALSE);
 
 	screenData.width = (float)(wr.right - wr.left);
@@ -61,8 +63,6 @@ gfxWindow::gfxWindow(int width, int height, const char* name, std::pair<bool*, b
 		exit(EXIT_FAILURE);
 	}
 
-
-	//pGfx = std::make_unique<Graphics>(hWnd, &screenData.width, &screenData.height, m_list);
 	pGfx = new Graphics(hWnd, &screenData.width, &screenData.height, m_list, Dim3D);
 
 
@@ -72,16 +72,21 @@ gfxWindow::gfxWindow(int width, int height, const char* name, std::pair<bool*, b
 #include"Logger.h"
 
 void gfxWindow::AdjustgfxWindowRect(LPARAM lp) {
+	//shioft rect so top bar not included
 	RECT wr = { 0 };
 	wr.left = 100;
 	wr.right = width + wr.left;
 	wr.top = 100;
 	wr.bottom = height + wr.top;
+	//ajust to new rect
 	AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_MAXIMIZEBOX | WS_SIZEBOX, FALSE);
-
+	//get the rect of my window
 	GetWindowRect(hWnd, &wr);
+	//f=get sh and sw from this
+	//passed to my graphics module as pointers
 	screenData.width = (float)(wr.right - wr.left);
 	screenData.height = (float)(wr.bottom - wr.top);
+	//logging
 #ifndef NDEBUG
 	Log l;
 	l << "-------------------\nSW -> ";
@@ -94,10 +99,11 @@ void gfxWindow::AdjustgfxWindowRect(LPARAM lp) {
 
 //Pretty self explanitory lmao
 gfxWindow::~gfxWindow() {
+	//obvious cleaup here
 	delete pGfx;
 	DestroyWindow(hWnd);
+	//delete my LL
 	DeleteList(m_list);
-	
 }
 
 
@@ -109,13 +115,13 @@ void gfxWindow::SetTitle(const std::string& Title) {
 LRESULT WINAPI gfxWindow::HandleMsgSetup_gfx(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept {
 
 
-
+	//same as Mainwinodow.cpp
 	if (msg == WM_NCCREATE) {
 	
 		const CREATESTRUCTW* const pCreate = reinterpret_cast<CREATESTRUCTW*>(lParam);
 	
 		gfxWindow* const pWnd = static_cast<gfxWindow*>(pCreate->lpCreateParams);
-		//pWnd->pGfx = new Graphics(hWnd);
+		
 
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWnd));
 		
@@ -125,13 +131,14 @@ LRESULT WINAPI gfxWindow::HandleMsgSetup_gfx(HWND hWnd, UINT msg, WPARAM wParam,
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
-//This function is just an adapter Converts from win32api to my c++ code (member call convention)
+
 LRESULT WINAPI gfxWindow::InvokeMemberFunc_gfx(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept {
 	
 	gfxWindow* const pWnd = reinterpret_cast<gfxWindow*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 	
 	return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 }
+
 LRESULT gfxWindow::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept {
 
 	
@@ -141,7 +148,10 @@ LRESULT gfxWindow::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) 
 	switch (msg) {
 
 	case WM_CLOSE:
+		//this is super cursed
+		//set the boolian so the window is off
 		*alive = false;
+		//delete the existing pointer to the class
 		delete this;
 		break;
 	
@@ -205,34 +215,43 @@ LRESULT gfxWindow::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) 
 	}
 	case WM_RBUTTONUP:
 	{
+		//obvs
 		const POINTS pt = MAKEPOINTS(lParam);
 		mouse.OnRightReleased(pt.x, pt.y);
 		break;
 	}
 	case WM_MOUSEWHEEL:
 	{
+		//getting mouse pos as usual
 		const POINTS pt = MAKEPOINTS(lParam);
+		//have to do this as diff mouses have diff deltas
 		const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+		//pass delta in to be handled in the func
 		mouse.OnWheelDelta(pt.x, pt.y, delta);
 
 	}
 	case WM_KEYDOWN:
+		//lparam mask to check if key is held
 		if (!(lParam & 0x40000000) || kbd.AutoRepeatIsEnabled()) {
 			kbd.OnKeyPressed(static_cast<unsigned char>(wParam));
 		}
 		break;
 	case WM_KEYUP:
+		//obvious
 		kbd.OnKeyReleased(static_cast<unsigned char>(wParam));
 		break;
 	case WM_CHAR:
+		//wparam contains pressed char
 		kbd.OnChar(static_cast<unsigned char>(wParam));
 		break;
 	case WM_KILLFOCUS:
 		kbd.ClearState();
 		break;
 	case WM_SIZE:
+		//get the new width and height of my window
 		AdjustgfxWindowRect(lParam);
 		if (pGfx) {
+			//if my pointer is not null resize my swapchain target
 			pGfx->AdjustSwapChainBufferSizes();
 		}
 		break;
@@ -245,7 +264,6 @@ LRESULT gfxWindow::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) 
 
 std::optional<int> gfxWindow::ProcessMessage() {
 	MSG msg;
-
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
 		if (msg.message == WM_QUIT) {
 			return msg.wParam;
@@ -258,5 +276,6 @@ std::optional<int> gfxWindow::ProcessMessage() {
 }
 
 Graphics& gfxWindow::GFX() {
+	//simple getter
 	return *pGfx;
 }
